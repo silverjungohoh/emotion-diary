@@ -63,4 +63,38 @@ class MemberControllerTest {
 			.andExpect(jsonPath("$.message").value("사용 가능한 이메일입니다."))
 			.andDo(print());
 	}
+
+	@DisplayName("입력 받은 닉네임이 이미 존재하는 경우 예외를 던진다.")
+	@Test
+	void checkNicknameWithDuplicatedNickname() throws Exception {
+		// given
+		String nickname = "hello";
+		given(memberService.checkNicknameDuplicated(anyString())).willThrow(
+			new MemberException(ALREADY_EXIST_NICKNAME));
+		// when & then
+		mockMvc.perform(get("/api/members/check/nickname").param("nickname", nickname))
+			.andExpect(status().isConflict())
+			.andExpect(jsonPath("$.code").value(ALREADY_EXIST_NICKNAME.getCode()))
+			.andExpect(jsonPath("$.status").value(ALREADY_EXIST_NICKNAME.getStatus()))
+			.andExpect(jsonPath("$.message").value(ALREADY_EXIST_NICKNAME.getMessage()))
+			.andDo(print());
+	}
+
+	@DisplayName("입력 받은 닉네임이 존재하지 않는 경우 사용 가능하다.")
+	@Test
+	void checkNickname() throws Exception {
+		// given
+		String nickname = "hello";
+
+		Map<String, String> response = new HashMap<>();
+		response.put("message", "사용 가능한 닉네임입니다.");
+		given(memberService.checkNicknameDuplicated(anyString())).willReturn(response);
+
+		// when & then
+		mockMvc.perform(get("/api/members/check/nickname").param("nickname", nickname))
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("$.message").value("사용 가능한 닉네임입니다."))
+			.andDo(print());
+	}
+
 }
