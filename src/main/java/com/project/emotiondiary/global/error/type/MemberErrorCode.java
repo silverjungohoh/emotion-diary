@@ -9,7 +9,8 @@ import lombok.AllArgsConstructor;
 @AllArgsConstructor
 public enum MemberErrorCode implements ErrorCode {
 
-	ALREADY_EXIST_EMAIL(CONFLICT, "E101", "이미 존재하는 이메일입니다.");
+	ALREADY_EXIST_EMAIL(CONFLICT, "E101", "이미 존재하는 이메일입니다."),
+	ALREADY_EXIST_NICKNAME(CONFLICT, "E102", "이미 존재하는 닉네임입니다.");
 
 	private final HttpStatus status;
 	private final String code;

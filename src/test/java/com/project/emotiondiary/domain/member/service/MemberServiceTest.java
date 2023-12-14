@@ -62,4 +62,34 @@ class MemberServiceTest {
 		// then
 		assertThat(response.get("message")).isEqualTo("사용 가능한 이메일입니다.");
 	}
+
+	@DisplayName("입력 받은 닉네임이 이미 존재하는 경우 예외를 던진다.")
+	@Test
+	void checkEmailWithDuplicatedNickname() {
+		// given
+		Member member = Member.builder()
+			.email("test@test.com")
+			.nickname("hello")
+			.gender(Gender.MALE)
+			.build();
+		memberRepository.save(member);
+
+		String nickname = "hello";
+
+		// when & then
+		assertThatThrownBy(() -> memberService.checkNicknameDuplicated(nickname))
+			.isInstanceOf(MemberException.class)
+			.hasMessage(ALREADY_EXIST_NICKNAME.getMessage());
+	}
+
+	@DisplayName("입력 받은 닉네임이 존재하지 않는 경우 사용 가능하다.")
+	@Test
+	void checkNickname() {
+		// given
+		String nickname = "hello";
+		// when
+		Map<String, String> response = memberService.checkNicknameDuplicated(nickname);
+		// then
+		assertThat(response.get("message")).isEqualTo("사용 가능한 닉네임입니다.");
+	}
 }
