@@ -8,5 +8,5 @@ import com.project.emotiondiary.domain.member.entity.Member;
 @Repository
 public interface MemberRepository extends JpaRepository<Member, Long> {
 
-
+	boolean existsByEmail(String email);
 }
