@@ -25,4 +25,12 @@ public class MemberController {
 		Map<String, String> response = memberService.checkEmailDuplicated(email);
 		return ResponseEntity.ok(response);
 	}
+
+	@GetMapping("/check/nickname")
+	public ResponseEntity<Map<String, String>> checkNicknameDuplicated(
+		@RequestParam(name = "nickname") String nickname) {
+
+		Map<String, String> response = memberService.checkNicknameDuplicated(nickname);
+		return ResponseEntity.ok(response);
+	}
 }

@@ -29,6 +29,16 @@ public class MemberService {
 		return getMessage("사용 가능한 이메일입니다.");
 	}
 
+	@Transactional(readOnly = true)
+	public Map<String, String> checkNicknameDuplicated(String nickname) {
+
+		if(memberRepository.existsByNickname(nickname)) {
+			throw new MemberException(ALREADY_EXIST_NICKNAME);
+		}
+
+		return getMessage("사용 가능한 닉네임입니다.");
+	}
+
 	private static Map<String, String> getMessage(String message) {
 		Map<String, String> result = new HashMap<>();
 		result.put("message", message);
