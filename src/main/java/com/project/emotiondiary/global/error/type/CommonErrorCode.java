@@ -7,11 +7,9 @@ import org.springframework.http.HttpStatus;
 import lombok.AllArgsConstructor;
 
 @AllArgsConstructor
-public enum MemberErrorCode implements ErrorCode {
+public enum CommonErrorCode implements ErrorCode {
 
-	ALREADY_EXIST_EMAIL(CONFLICT, "E101", "이미 존재하는 이메일입니다."),
-	ALREADY_EXIST_NICKNAME(CONFLICT, "E102", "이미 존재하는 닉네임입니다."),
-	MISMATCH_PASSWORD_CHECK(BAD_REQUEST, "E103", "두 비밀번호가 일치하지 않습니다.");
+	INPUT_VALUE_INVALID(BAD_REQUEST, "E001", "입력값이 올바르지 않습니다.");
 
 	private final HttpStatus status;
 	private final String code;
