@@ -2,14 +2,20 @@ package com.project.emotiondiary.domain.member.controller;
 
 import java.util.Map;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.project.emotiondiary.domain.member.model.SignUpRequest;
+import com.project.emotiondiary.domain.member.model.SignUpResponse;
 import com.project.emotiondiary.domain.member.service.MemberService;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 @RequestMapping("/api/members")
@@ -32,5 +38,12 @@ public class MemberController {
 
 		Map<String, String> response = memberService.checkNicknameDuplicated(nickname);
 		return ResponseEntity.ok(response);
+	}
+
+	@PostMapping("/sign-up")
+	public ResponseEntity<SignUpResponse> signUp(@Valid @RequestBody SignUpRequest request) {
+
+		SignUpResponse response = memberService.signUp(request);
+		return ResponseEntity.status(HttpStatus.CREATED).body(response);
 	}
 }
