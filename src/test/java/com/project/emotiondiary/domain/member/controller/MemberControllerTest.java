@@ -1,5 +1,6 @@
 package com.project.emotiondiary.domain.member.controller;
 
+import static com.project.emotiondiary.global.error.type.CommonErrorCode.*;
 import static com.project.emotiondiary.global.error.type.MemberErrorCode.*;
 import static org.mockito.BDDMockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -14,9 +15,13 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.project.emotiondiary.domain.member.entity.Gender;
+import com.project.emotiondiary.domain.member.model.SignUpRequest;
+import com.project.emotiondiary.domain.member.model.SignUpResponse;
 import com.project.emotiondiary.domain.member.service.MemberService;
 import com.project.emotiondiary.global.error.exception.MemberException;
 
@@ -97,4 +102,82 @@ class MemberControllerTest {
 			.andDo(print());
 	}
 
+	@DisplayName("회원 가입 시 입력 받은 두 비밀번호가 일치하지 않으면 예외를 던진다.")
+	@Test
+	void signUpWithMismatchPasswordCheck() throws Exception{
+		// given
+		SignUpRequest request = SignUpRequest.builder()
+			.email("test@test.com")
+			.nickname("hello")
+			.password("zxc123")
+			.passwordCheck("zxc123")
+			.checkEmail(true)
+			.checkNick(true)
+			.gender(Gender.MALE)
+			.build();
+
+		given(memberService.signUp(any())).willThrow(new MemberException(MISMATCH_PASSWORD_CHECK));
+
+		// when & then
+		mockMvc.perform(post("/api/members/sign-up")
+				.content(objectMapper.writeValueAsString(request))
+				.contentType(MediaType.APPLICATION_JSON))
+			.andExpect(status().isBadRequest())
+			.andExpect(jsonPath("$.code").value(MISMATCH_PASSWORD_CHECK.getCode()))
+			.andExpect(jsonPath("$.status").value(MISMATCH_PASSWORD_CHECK.getStatus()))
+			.andExpect(jsonPath("$.message").value(MISMATCH_PASSWORD_CHECK.getMessage()))
+			.andDo(print());
+	}
+
+	@DisplayName("회원 가입에 성공한다.")
+	@Test
+	void signUp() throws Exception{
+		// given
+		SignUpRequest request = SignUpRequest.builder()
+			.email("test@test.com")
+			.nickname("hello")
+			.password("zxc123")
+			.passwordCheck("zxc123")
+			.checkEmail(true)
+			.checkNick(true)
+			.gender(Gender.MALE)
+			.build();
+
+		SignUpResponse response = new SignUpResponse("hello");
+		given(memberService.signUp(any())).willReturn(response);
+
+		// when & then
+		mockMvc.perform(post("/api/members/sign-up")
+				.content(objectMapper.writeValueAsString(request))
+				.contentType(MediaType.APPLICATION_JSON))
+			.andExpect(status().isCreated())
+			.andExpect(jsonPath("$.nickname").value(request.getNickname()))
+			.andDo(print());
+	}
+
+	@DisplayName("회원 가입 시 유효성 검증에 실패한 경우 예외를 던진다.")
+	@Test
+	void signUpWithInvalid() throws Exception{
+		// given
+		SignUpRequest request = SignUpRequest.builder()
+			.email("test@test.com")
+			.nickname("")
+			.password("zxc123")
+			.passwordCheck("zxc123")
+			.checkEmail(false)
+			.checkNick(false)
+			.gender(Gender.MALE)
+			.build();
+
+		// when & then
+		mockMvc.perform(post("/api/members/sign-up")
+				.content(objectMapper.writeValueAsString(request))
+				.contentType(MediaType.APPLICATION_JSON))
+			.andExpect(status().isBadRequest())
+			.andExpect(jsonPath("$.code").value(INPUT_VALUE_INVALID.getCode()))
+			.andExpect(jsonPath("$.status").value(INPUT_VALUE_INVALID.getStatus()))
+			.andExpect(jsonPath("$.message").value(INPUT_VALUE_INVALID.getMessage()))
+			.andExpect(jsonPath("$.fieldErrors.size()").value(3))
+			.andDo(print());
+	}
 }
