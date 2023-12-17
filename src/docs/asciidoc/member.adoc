@@ -1,0 +1,108 @@
+== Member API
+
+=== 이메일 중복확인
+
+==== 실패 - 중복된 이메일
+
+*HTTP Request*
+include::{snippets}/member-controller-test/check-email-with-duplicated-email/http-request.adoc[]
+
+* Query Parameters
+include::{snippets}/member-controller-test/check-email-with-duplicated-email/query-parameters.adoc[]
+
+*HTTP Response*
+include::{snippets}/member-controller-test/check-email-with-duplicated-email/http-response.adoc[]
+
+
+* Response Fields
+include::{snippets}/member-controller-test/check-email-with-duplicated-email/response-fields.adoc[]
+
+==== 성공
+
+*HTTP Request*
+include::{snippets}/member-controller-test/check-email/http-request.adoc[]
+
+* Query Parameters
+include::{snippets}/member-controller-test/check-email/query-parameters.adoc[]
+
+*HTTP Response*
+include::{snippets}/member-controller-test/check-email/http-response.adoc[]
+
+
+* Response Fields
+include::{snippets}/member-controller-test/check-email/response-fields.adoc[]
+
+=== 닉네임 중복확인
+
+==== 실패 - 중복된 닉네임
+
+*HTTP Request*
+include::{snippets}/member-controller-test/check-nickname-with-duplicated-nickname/http-request.adoc[]
+
+* Query Parameters
+include::{snippets}/member-controller-test/check-nickname-with-duplicated-nickname/query-parameters.adoc[]
+
+*HTTP Response*
+include::{snippets}/member-controller-test/check-nickname-with-duplicated-nickname/http-response.adoc[]
+
+* Response Fields
+include::{snippets}/member-controller-test/check-nickname-with-duplicated-nickname/response-fields.adoc[]
+
+==== 성공
+
+*HTTP Request*
+include::{snippets}/member-controller-test/check-nickname/http-request.adoc[]
+
+* Query Parameters
+include::{snippets}/member-controller-test/check-nickname/query-parameters.adoc[]
+
+*HTTP Response*
+include::{snippets}/member-controller-test/check-nickname/http-response.adoc[]
+
+* Response Fields
+include::{snippets}/member-controller-test/check-nickname/response-fields.adoc[]
+
+=== 회원가입
+
+==== 실패 - 두 비밀번호 불일치
+
+*HTTP Request*
+include::{snippets}/member-controller-test/sign-up-with-mismatch-password-check/http-request.adoc[]
+
+* Request Fields
+include::{snippets}/member-controller-test/sign-up-with-mismatch-password-check/request-fields.adoc[]
+
+*HTTP Response*
+include::{snippets}/member-controller-test/sign-up-with-mismatch-password-check/http-response.adoc[]
+
+* Response Fields
+include::{snippets}/member-controller-test/sign-up-with-mismatch-password-check/response-fields.adoc[]
+
+==== 실패 - 유효성 검증 실패
+
+
+*HTTP Request*
+include::{snippets}/member-controller-test/sign-up-with-invalid/http-request.adoc[]
+
+* Request Fields
+include::{snippets}/member-controller-test/sign-up-with-invalid/request-fields.adoc[]
+
+*HTTP Response*
+include::{snippets}/member-controller-test/sign-up-with-invalid/http-response.adoc[]
+
+* Response Fields
+include::{snippets}/member-controller-test/sign-up-with-invalid/response-fields.adoc[]
+
+==== 성공
+
+*HTTP Request*
+include::{snippets}/member-controller-test/sign-up/http-request.adoc[]
+
+* Request Fields
+include::{snippets}/member-controller-test/sign-up/request-fields.adoc[]
+
+*HTTP Response*
+include::{snippets}/member-controller-test/sign-up/http-response.adoc[]
+
+* Response Fields
+include::{snippets}/member-controller-test/sign-up/response-fields.adoc[]
