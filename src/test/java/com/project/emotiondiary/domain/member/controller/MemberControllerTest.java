@@ -19,6 +19,8 @@ import org.springframework.http.MediaType;
 
 import com.project.emotiondiary.docs.RestDocsTestSupport;
 import com.project.emotiondiary.domain.member.entity.Gender;
+import com.project.emotiondiary.domain.member.model.LoginRequest;
+import com.project.emotiondiary.domain.member.model.LoginResponse;
 import com.project.emotiondiary.domain.member.model.SignUpRequest;
 import com.project.emotiondiary.domain.member.model.SignUpResponse;
 import com.project.emotiondiary.domain.member.service.MemberService;
@@ -139,7 +141,7 @@ class MemberControllerTest extends RestDocsTestSupport {
 
 	@DisplayName("회원 가입 시 입력 받은 두 비밀번호가 일치하지 않으면 예외를 던진다.")
 	@Test
-	void signUpWithMismatchPasswordCheck() throws Exception{
+	void signUpWithMismatchPasswordCheck() throws Exception {
 		// given
 		SignUpRequest request = SignUpRequest.builder()
 			.email("test@test.com")
@@ -184,7 +186,7 @@ class MemberControllerTest extends RestDocsTestSupport {
 
 	@DisplayName("회원 가입에 성공한다.")
 	@Test
-	void signUp() throws Exception{
+	void signUp() throws Exception {
 		// given
 		SignUpRequest request = SignUpRequest.builder()
 			.email("test@test.com")
@@ -225,7 +227,7 @@ class MemberControllerTest extends RestDocsTestSupport {
 
 	@DisplayName("회원 가입 시 유효성 검증에 실패한 경우 예외를 던진다.")
 	@Test
-	void signUpWithInvalid() throws Exception{
+	void signUpWithInvalid() throws Exception {
 		// given
 		SignUpRequest request = SignUpRequest.builder()
 			.email("test@test.com")
@@ -264,6 +266,119 @@ class MemberControllerTest extends RestDocsTestSupport {
 						fieldWithPath("fieldErrors").description("유효성 검증 실패에 대한 정보"),
 						fieldWithPath("fieldErrors[].field").description("유효성 검증 실패한 필드 이름"),
 						fieldWithPath("fieldErrors[].reason").description("유효성 검증 실패한 필드의 메세지")
+					)
+				)
+			);
+	}
+
+	@DisplayName("존재하지 않는 회원이 로그인을 하면 예외를 던진다.")
+	@Test
+	void loginWithNotFoundMember() throws Exception {
+		// given
+		LoginRequest request = LoginRequest.builder()
+			.email("test@test.com")
+			.password("zxc123")
+			.build();
+
+		given(memberService.login(any())).willThrow(new MemberException(MEMBER_NOT_FOUND));
+
+		// when & then
+		mockMvc.perform(post("/api/members/login")
+				.content(objectMapper.writeValueAsString(request))
+				.contentType(MediaType.APPLICATION_JSON))
+			.andExpect(status().isNotFound())
+			.andExpect(jsonPath("$.code").value(MEMBER_NOT_FOUND.getCode()))
+			.andExpect(jsonPath("$.status").value(MEMBER_NOT_FOUND.getStatus()))
+			.andExpect(jsonPath("$.message").value(MEMBER_NOT_FOUND.getMessage()))
+			.andDo(
+				restDocs.document(
+					requestFields(
+						fieldWithPath("email").description("회원 이메일"),
+						fieldWithPath("password").description("회원 비밀번호")
+					),
+					responseFields(
+						fieldWithPath("status").description("HTTP 상태 코드"),
+						fieldWithPath("message").description("에러 메세지"),
+						fieldWithPath("code").description("에러 코드"),
+						fieldWithPath("fieldErrors").description("유효성 검증 실패에 대한 정보")
+					)
+				)
+			);
+	}
+
+	@DisplayName("잘못된 비밀번호로 로그인을 하면 예외를 던진다.")
+	@Test
+	void loginWithWrongPassword() throws Exception {
+		// given
+		LoginRequest request = LoginRequest.builder()
+			.email("test@test.com")
+			.password("zxc123")
+			.build();
+
+		given(memberService.login(any())).willThrow(new MemberException(FAIL_TO_LOGIN));
+
+		// when & then
+		mockMvc.perform(post("/api/members/login")
+				.content(objectMapper.writeValueAsString(request))
+				.contentType(MediaType.APPLICATION_JSON))
+			.andExpect(status().isUnauthorized())
+			.andExpect(jsonPath("$.code").value(FAIL_TO_LOGIN.getCode()))
+			.andExpect(jsonPath("$.status").value(FAIL_TO_LOGIN.getStatus()))
+			.andExpect(jsonPath("$.message").value(FAIL_TO_LOGIN.getMessage()))
+			.andDo(
+				restDocs.document(
+					requestFields(
+						fieldWithPath("email").description("회원 이메일"),
+						fieldWithPath("password").description("회원 비밀번호")
+					),
+					responseFields(
+						fieldWithPath("status").description("HTTP 상태 코드"),
+						fieldWithPath("message").description("에러 메세지"),
+						fieldWithPath("code").description("에러 코드"),
+						fieldWithPath("fieldErrors").description("유효성 검증 실패에 대한 정보")
+					)
+				)
+			);
+	}
+
+	@DisplayName("회원 로그인에 성공한다.")
+	@Test
+	void login() throws Exception {
+		// given
+		LoginRequest request = LoginRequest.builder()
+			.email("test@test.com")
+			.password("zxc123")
+			.build();
+
+		LoginResponse response = LoginResponse.builder()
+			.accessToken(
+				"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9"
+					+ ".eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ"
+					+ ".SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c")
+			.refreshToken(
+				"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9"
+					+ ".eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ"
+					+ ".SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c")
+			.build();
+
+		given(memberService.login(any())).willReturn(response);
+
+		// when & then
+		mockMvc.perform(post("/api/members/login")
+				.content(objectMapper.writeValueAsString(request))
+				.contentType(MediaType.APPLICATION_JSON))
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("$.accessToken").value(response.getAccessToken()))
+			.andExpect(jsonPath("$.refreshToken").value(response.getRefreshToken()))
+			.andDo(
+				restDocs.document(
+					requestFields(
+						fieldWithPath("email").description("회원 이메일"),
+						fieldWithPath("password").description("회원 비밀번호")
+					),
+					responseFields(
+						fieldWithPath("accessToken").description("회원 access token"),
+						fieldWithPath("refreshToken").description("회원 refresh token")
 					)
 				)
 			);
