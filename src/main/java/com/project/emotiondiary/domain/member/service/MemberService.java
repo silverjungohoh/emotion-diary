@@ -6,22 +6,27 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.project.emotiondiary.domain.member.entity.Member;
+import com.project.emotiondiary.domain.member.entity.Role;
 import com.project.emotiondiary.domain.member.model.SignUpRequest;
 import com.project.emotiondiary.domain.member.model.SignUpResponse;
 import com.project.emotiondiary.domain.member.repository.MemberRepository;
 import com.project.emotiondiary.global.error.exception.MemberException;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class MemberService {
 
 	private final MemberRepository memberRepository;
+	private final PasswordEncoder passwordEncoder;
 
 	@Transactional(readOnly = true)
 	public Map<String, String> checkEmailDuplicated(String email) {
@@ -52,9 +57,10 @@ public class MemberService {
 
 		Member member = Member.builder()
 			.email(request.getEmail())
-			.password(request.getPassword())
+			.password(passwordEncoder.encode(request.getPassword()))
 			.nickname(request.getNickname())
 			.gender(request.getGender())
+			.role(Role.ROLE_USER)
 			.build();
 
 		memberRepository.save(member);
