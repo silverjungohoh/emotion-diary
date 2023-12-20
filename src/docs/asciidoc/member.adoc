@@ -106,3 +106,47 @@ include::{snippets}/member-controller-test/sign-up/http-response.adoc[]
 
 * Response Fields
 include::{snippets}/member-controller-test/sign-up/response-fields.adoc[]
+
+=== 회원 로그인
+
+==== 실패 - 존재하지 않는 회원
+
+*HTTP Request*
+include::{snippets}/member-controller-test/login-with-not-found-member/http-request.adoc[]
+
+* Request Fields
+include::{snippets}/member-controller-test/login-with-not-found-member/request-fields.adoc[]
+
+*HTTP Response*
+include::{snippets}/member-controller-test/login-with-not-found-member/http-response.adoc[]
+
+* Response Fields
+include::{snippets}/member-controller-test/login-with-not-found-member/response-fields.adoc[]
+
+==== 실패 - 잘못된 비밀번호
+
+*HTTP Request*
+include::{snippets}/member-controller-test/login-with-wrong-password/http-request.adoc[]
+
+* Request Fields
+include::{snippets}/member-controller-test/login-with-wrong-password/request-fields.adoc[]
+
+*HTTP Response*
+include::{snippets}/member-controller-test/login-with-wrong-password/http-response.adoc[]
+
+* Response Fields
+include::{snippets}/member-controller-test/login-with-wrong-password/response-fields.adoc[]
+
+==== 성공
+
+*HTTP Request*
+include::{snippets}/member-controller-test/login/http-request.adoc[]
+
+* Request Fields
+include::{snippets}/member-controller-test/login-with-wrong-password/request-fields.adoc[]
+
+*HTTP Response*
+include::{snippets}/member-controller-test/login/http-response.adoc[]
+
+* Response Fields
+include::{snippets}/member-controller-test/login/response-fields.adoc[]
