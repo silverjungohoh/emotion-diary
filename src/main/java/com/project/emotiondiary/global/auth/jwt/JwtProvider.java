@@ -1,5 +1,7 @@
 package com.project.emotiondiary.global.auth.jwt;
 
+import static com.project.emotiondiary.global.error.type.AuthErrorCode.*;
+
 import java.nio.charset.StandardCharsets;
 import java.security.Key;
 import java.util.Date;
@@ -10,13 +12,18 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import com.project.emotiondiary.domain.member.entity.Role;
+import com.project.emotiondiary.global.error.exception.AuthException;
 
+import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Header;
+import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
 import jakarta.annotation.PostConstruct;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @Component
 public class JwtProvider {
 
@@ -54,7 +61,7 @@ public class JwtProvider {
 			.compact();
 	}
 
-	public String generateRefreshToken (String email) {
+	public String generateRefreshToken(String email) {
 		Date now = new Date();
 		Map<String, Object> claims = createClaims(email, "refresh");
 
@@ -65,6 +72,36 @@ public class JwtProvider {
 			.setExpiration(new Date(now.getTime() + refreshTokenValid))
 			.signWith(key, SignatureAlgorithm.HS256)
 			.compact();
+	}
+
+	// token 검증 메서드
+	public boolean validateToken(String token) {
+		try {
+			Jwts.parserBuilder()
+				.setSigningKey(key)
+				.build()
+				.parseClaimsJws(token)
+				.getBody();
+			return true;
+		} catch (ExpiredJwtException e) {
+			log.info("expired token >> {}", e.getMessage());
+			throw new AuthException(EXPIRED_TOKEN);
+		} catch (JwtException e) {
+			log.info("invalid token >> {}", e.getMessage());
+			throw new AuthException(INVALID_TOKEN);
+		} catch (IllegalArgumentException e) {
+			log.info("wrong token >> {}", e.getMessage());
+			throw new AuthException(WRONG_TOKEN);
+		}
+	}
+
+	public String extractEmail(String token) {
+		return Jwts.parserBuilder()
+			.setSigningKey(key)
+			.build()
+			.parseClaimsJws(token)
+			.getBody()
+			.get("email", String.class);
 	}
 
 	private static Map<String, Object> createClaims(String email, String type) {
