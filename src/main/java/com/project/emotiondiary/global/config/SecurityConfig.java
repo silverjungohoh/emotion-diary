@@ -37,11 +37,10 @@ public class SecurityConfig {
 		http.authorizeHttpRequests(
 			authorize ->
 				authorize
-					.requestMatchers("/api/members/sign-up", "/api/members/login", "/api/members/check/**")
+					.requestMatchers("/api/**")
 					.permitAll()
 					.requestMatchers(PathRequest.toH2Console())
 					.permitAll()
-					.anyRequest().authenticated()
 		);
 
 		http.headers(
