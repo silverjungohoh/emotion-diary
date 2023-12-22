@@ -14,6 +14,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.ActiveProfiles;
 
 import com.project.emotiondiary.domain.member.entity.Member;
@@ -31,6 +32,9 @@ class CustomUserDetailsServiceTest {
 	@Autowired
 	private CustomUserDetailsService userDetailsService;
 
+	@Autowired
+	private PasswordEncoder passwordEncoder;
+
 	@AfterEach
 	void tearDown() {
 		memberRepository.deleteAllInBatch();
@@ -41,25 +45,27 @@ class CustomUserDetailsServiceTest {
 	@Test
 	void loadUserByUsername() {
 		// given
+		String email = "test@test.com";
+		String password = passwordEncoder.encode("zxc123");
+
 		Member member = Member.builder()
 			.email("test@test.com")
 			.role(ROLE_USER)
-			.password("zxc123")
+			.password(password)
 			.build();
 
 		memberRepository.save(member);
-
-		String email = "test@test.com";
 
 		// when
 		UserDetails userDetails = userDetailsService.loadUserByUsername(email);
 
 		// then
 		assertThat(userDetails).isInstanceOf(CustomUserDetails.class);
+		assertThat(userDetails.getPassword()).isEqualTo(password);
 		assertThat(userDetails.getUsername()).isEqualTo(email);
+		assertThat(userDetails.isEnabled()).isTrue();
 
 		Collection<? extends GrantedAuthority> authorities = userDetails.getAuthorities();
-		assertThat(authorities).hasSize(1);
 		assertThat(authorities.contains(new SimpleGrantedAuthority("ROLE_USER"))).isTrue();
 	}
 
