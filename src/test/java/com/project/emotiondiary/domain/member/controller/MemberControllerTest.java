@@ -13,8 +13,11 @@ import java.util.Map;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.FilterType;
 import org.springframework.http.MediaType;
 
 import com.project.emotiondiary.docs.RestDocsTestSupport;
@@ -24,9 +27,14 @@ import com.project.emotiondiary.domain.member.model.LoginResponse;
 import com.project.emotiondiary.domain.member.model.SignUpRequest;
 import com.project.emotiondiary.domain.member.model.SignUpResponse;
 import com.project.emotiondiary.domain.member.service.MemberService;
+import com.project.emotiondiary.global.config.SecurityConfig;
 import com.project.emotiondiary.global.error.exception.MemberException;
 
-@WebMvcTest
+@WebMvcTest(
+	excludeAutoConfiguration = SecurityAutoConfiguration.class,
+	excludeFilters = {
+		@ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, classes = SecurityConfig.class)}
+)
 class MemberControllerTest extends RestDocsTestSupport {
 
 	@MockBean
