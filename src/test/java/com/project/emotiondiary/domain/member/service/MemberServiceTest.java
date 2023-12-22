@@ -11,10 +11,13 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.ActiveProfiles;
 
 import com.project.emotiondiary.domain.member.entity.Gender;
 import com.project.emotiondiary.domain.member.entity.Member;
+import com.project.emotiondiary.domain.member.model.LoginRequest;
+import com.project.emotiondiary.domain.member.model.LoginResponse;
 import com.project.emotiondiary.domain.member.model.SignUpRequest;
 import com.project.emotiondiary.domain.member.model.SignUpResponse;
 import com.project.emotiondiary.domain.member.repository.MemberRepository;
@@ -29,6 +32,9 @@ class MemberServiceTest {
 
 	@Autowired
 	private MemberService memberService;
+
+	@Autowired
+	private PasswordEncoder passwordEncoder;
 
 	@AfterEach
 	void tearDown() {
@@ -133,5 +139,60 @@ class MemberServiceTest {
 		assertThat(response)
 			.extracting("nickname")
 			.isEqualTo("hello");
+	}
+
+	@DisplayName("존재하지 않는 회원이 로그인을 하면 예외를 던진다.")
+	@Test
+	void loginWithNotFoundMember() {
+		// given
+		LoginRequest request = LoginRequest.builder()
+			.email("test@test.com")
+			.password("zxc123")
+			.build();
+		// when & then
+		assertThatThrownBy(() -> memberService.login(request))
+			.isInstanceOf(MemberException.class)
+			.hasMessage(MEMBER_NOT_FOUND.getMessage());
+	}
+
+	@DisplayName("잘못된 비밀번호로 로그인을 하면 예외를 던진다.")
+	@Test
+	void loginWithWrongPassword() {
+		// given
+		Member member = Member.builder()
+			.email("test@test.com")
+			.password(passwordEncoder.encode("zxc123"))
+			.build();
+		memberRepository.save(member);
+
+		LoginRequest request = LoginRequest.builder()
+			.email("test@test.com")
+			.password("qwe123")
+			.build();
+		// when & then
+		assertThatThrownBy(() -> memberService.login(request))
+			.isInstanceOf(MemberException.class)
+			.hasMessage(FAIL_TO_LOGIN.getMessage());
+	}
+
+	@DisplayName("회원 로그인에 성공한다.")
+	@Test
+	void login() {
+		// given
+		Member member = Member.builder()
+			.email("test@test.com")
+			.password(passwordEncoder.encode("zxc123"))
+			.build();
+		memberRepository.save(member);
+
+		LoginRequest request = LoginRequest.builder()
+			.email("test@test.com")
+			.password("zxc123")
+			.build();
+		// when
+		LoginResponse response = memberService.login(request);
+		// then
+		assertThat(response.getAccessToken()).isNotNull();
+		assertThat(response.getRefreshToken()).isNotNull();
 	}
 }

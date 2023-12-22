@@ -7,13 +7,12 @@ import org.springframework.http.HttpStatus;
 import lombok.AllArgsConstructor;
 
 @AllArgsConstructor
-public enum MemberErrorCode implements ErrorCode {
+public enum AuthErrorCode implements ErrorCode {
 
-	ALREADY_EXIST_EMAIL(CONFLICT, "E101", "이미 존재하는 이메일입니다."),
-	ALREADY_EXIST_NICKNAME(CONFLICT, "E102", "이미 존재하는 닉네임입니다."),
-	MISMATCH_PASSWORD_CHECK(BAD_REQUEST, "E103", "두 비밀번호가 일치하지 않습니다."),
-	MEMBER_NOT_FOUND(NOT_FOUND, "E104", "존재하지 않는 회원입니다."),
-	FAIL_TO_LOGIN(UNAUTHORIZED, "E104", "회원 로그인에 실패하였습니다.");
+	EXPIRED_TOKEN(UNAUTHORIZED, "E201", "만료된 토큰입니다."),
+	INVALID_TOKEN(UNAUTHORIZED, "E202", "유효하지 않은 토큰입니다."),
+	WRONG_TOKEN(UNAUTHORIZED, "E203", "잘못된 토큰입니다."),
+	AUTHENTICATION_FAILED(UNAUTHORIZED, "E204", "사용자 인증에 실패하였습니다.");
 
 	private final HttpStatus status;
 	private final String code;
