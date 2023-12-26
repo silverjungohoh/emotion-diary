@@ -1,5 +1,7 @@
 package com.project.emotiondiary.domain.diary.entity;
 
+import java.util.Arrays;
+
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
@@ -14,4 +16,11 @@ public enum EmotionType {
 	BEST(5);
 
 	private final int score;
+
+	public static EmotionType getEmotionType(int score) {
+		return Arrays.stream(values())
+			.filter(type -> type.getScore() == score)
+			.findAny()
+			.orElse(null);
+	}
 }
