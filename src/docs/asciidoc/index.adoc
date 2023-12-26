@@ -11,3 +11,5 @@ endif::[]
 :sectlinks:
 
 include::member.adoc[]
+
+include::diary.adoc[]
