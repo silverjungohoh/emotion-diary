@@ -13,32 +13,17 @@ import java.util.Map;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.FilterType;
 import org.springframework.http.MediaType;
 
-import com.project.emotiondiary.docs.RestDocsTestSupport;
 import com.project.emotiondiary.domain.member.entity.Gender;
 import com.project.emotiondiary.domain.member.model.LoginRequest;
 import com.project.emotiondiary.domain.member.model.LoginResponse;
 import com.project.emotiondiary.domain.member.model.SignUpRequest;
 import com.project.emotiondiary.domain.member.model.SignUpResponse;
-import com.project.emotiondiary.domain.member.service.MemberService;
-import com.project.emotiondiary.global.config.SecurityConfig;
 import com.project.emotiondiary.global.error.exception.MemberException;
+import com.project.emotiondiary.helper.ControllerTestSupport;
 
-@WebMvcTest(
-	excludeAutoConfiguration = SecurityAutoConfiguration.class,
-	excludeFilters = {
-		@ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, classes = SecurityConfig.class)}
-)
-class MemberControllerTest extends RestDocsTestSupport {
-
-	@MockBean
-	private MemberService memberService;
+class MemberControllerTest extends ControllerTestSupport {
 
 	@DisplayName("입력 받은 이메일이 이미 존재하는 경우 예외를 던진다.")
 	@Test
@@ -214,7 +199,7 @@ class MemberControllerTest extends RestDocsTestSupport {
 				.content(objectMapper.writeValueAsString(request))
 				.contentType(MediaType.APPLICATION_JSON))
 			.andExpect(status().isCreated())
-			.andExpect(jsonPath("$.nickname").value(request.getNickname()))
+			.andExpect(jsonPath("$.nickname").value("hello"))
 			.andDo(
 				restDocs.document(
 					requestFields(
