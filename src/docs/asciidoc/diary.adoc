@@ -1,0 +1,45 @@
+== Diary API
+
+=== 일기 작성
+
+==== 실패 - 해당 날짜에 이미 작성된 일기 존재
+
+*HTTP Request*
+include::{snippets}/diary-controller-test/write-diary-already-exist-date/http-request.adoc[]
+
+* Request Fields
+include::{snippets}/diary-controller-test/write-diary-already-exist-date/request-fields.adoc[]
+
+*HTTP Response*
+include::{snippets}/diary-controller-test/write-diary-already-exist-date/http-response.adoc[]
+
+* Response Fields
+include::{snippets}/diary-controller-test/write-diary-already-exist-date/response-fields.adoc[]
+
+==== 실패 - 유효성 검증 실패
+
+*HTTP Request*
+include::{snippets}/diary-controller-test/write-diary-with-invalid/http-request.adoc[]
+
+* Request Fields
+include::{snippets}/diary-controller-test/write-diary-with-invalid/request-fields.adoc[]
+
+*HTTP Response*
+include::{snippets}/diary-controller-test/write-diary-with-invalid/http-response.adoc[]
+
+* Response Fields
+include::{snippets}/diary-controller-test/write-diary-with-invalid/response-fields.adoc[]
+
+==== 성공
+
+*HTTP Request*
+include::{snippets}/diary-controller-test/write-diary/http-request.adoc[]
+
+* Request Fields
+include::{snippets}/diary-controller-test/write-diary/request-fields.adoc[]
+
+*HTTP Response*
+include::{snippets}/diary-controller-test/write-diary/http-response.adoc[]
+
+* Response Fields
+include::{snippets}/diary-controller-test/write-diary/response-fields.adoc[]
