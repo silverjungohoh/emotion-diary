@@ -20,6 +20,7 @@ import org.springframework.http.MediaType;
 import com.project.emotiondiary.domain.diary.entity.EmotionType;
 import com.project.emotiondiary.domain.diary.model.CreateDiaryRequest;
 import com.project.emotiondiary.domain.diary.model.CreateDiaryResponse;
+import com.project.emotiondiary.domain.diary.model.DiaryDetailResponse;
 import com.project.emotiondiary.global.error.exception.DiaryException;
 import com.project.emotiondiary.helper.ControllerTestSupport;
 
@@ -203,7 +204,7 @@ class DiaryControllerTest extends ControllerTestSupport {
 			.andDo(
 				restDocs.document(
 					pathParameters(
-						parameterWithName("diaryId").description("일기 고유 번호")
+						parameterWithName("diaryId").description("삭제하려는 일기 고유 번호")
 					),
 					responseFields(
 						fieldWithPath("status").description("HTTP 상태 코드"),
@@ -231,10 +232,71 @@ class DiaryControllerTest extends ControllerTestSupport {
 			.andDo(
 				restDocs.document(
 					pathParameters(
-						parameterWithName("diaryId").description("일기 고유 번호")
+						parameterWithName("diaryId").description("삭제하려는 일기 고유 번호")
 					),
 					responseFields(
 						fieldWithPath("message").description("응답 메세지")
+					)
+				)
+			);
+	}
+
+	@DisplayName("상세 조회하려는 일기가 존재하지 않는 경우 예외를 던진다.")
+	@Test
+	void getDiaryDetailWithNoDiary() throws Exception {
+		// given
+		given(diaryService.getDiaryDetail(any(), anyLong())).willThrow(new DiaryException(DIARY_NOT_FOUND));
+
+		// when & then
+		mockMvc.perform(get("/api/diaries/{diaryId}", 1L)
+				.header(AUTHORIZATION, String.format(BEARER_PREFIX, ACCESS_TOKEN)))
+			.andExpect(status().isNotFound())
+			.andDo(
+				restDocs.document(
+					pathParameters(
+						parameterWithName("diaryId").description("상세 조회하려는 일기 고유 번호")
+					),
+					responseFields(
+						fieldWithPath("status").description("HTTP 상태 코드"),
+						fieldWithPath("message").description("에러 메세지"),
+						fieldWithPath("code").description("에러 코드"),
+						fieldWithPath("fieldErrors").description("유효성 검증 실패에 대한 정보")
+					)
+				)
+			);
+	}
+
+	@DisplayName("하나의 일기를 상세 조회한다.")
+	@Test
+	void getDiaryDetail() throws Exception {
+		// given
+		DiaryDetailResponse response = DiaryDetailResponse.builder()
+			.id(1L)
+			.title("제목")
+			.content("내용")
+			.emotionType(EmotionType.GOOD)
+			.date(LocalDate.now())
+			.writer(true)
+			.build();
+
+		given(diaryService.getDiaryDetail(any(), anyLong())).willReturn(response);
+
+		// when & then
+		mockMvc.perform(get("/api/diaries/{diaryId}", 1L)
+				.header(AUTHORIZATION, String.format(BEARER_PREFIX, ACCESS_TOKEN)))
+			.andExpect(status().isOk())
+			.andDo(
+				restDocs.document(
+					pathParameters(
+						parameterWithName("diaryId").description("상세 조회하려는 일기 고유 번호")
+					),
+					responseFields(
+						fieldWithPath("id").description("일기 고유 번호"),
+						fieldWithPath("title").description("일기 제목"),
+						fieldWithPath("content").description("일기 내용"),
+						fieldWithPath("date").description("날짜"),
+						fieldWithPath("emotionType").description("감정 점수에 기반한 감정 타입 (WORST/BAD/NORMAL/GOOD/BEST)"),
+						fieldWithPath("isWriter").description("일기 작성자 여부 (true/false)")
 					)
 				)
 			);

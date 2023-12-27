@@ -14,6 +14,7 @@ import com.project.emotiondiary.domain.diary.entity.Diary;
 import com.project.emotiondiary.domain.diary.entity.EmotionType;
 import com.project.emotiondiary.domain.diary.model.CreateDiaryRequest;
 import com.project.emotiondiary.domain.diary.model.CreateDiaryResponse;
+import com.project.emotiondiary.domain.diary.model.DiaryDetailResponse;
 import com.project.emotiondiary.domain.diary.repository.DiaryRepository;
 import com.project.emotiondiary.domain.member.entity.Member;
 import com.project.emotiondiary.domain.member.repository.MemberRepository;
@@ -61,14 +62,14 @@ class DiaryServiceTest extends IntegrationTestSupport {
 		Diary diary = Diary.builder()
 			.title("제목")
 			.content("내용")
-			.date(LocalDate.of(2023, 12, 25))
+			.date(LocalDate.now())
 			.build();
 		diaryRepository.save(diary);
 
 		CreateDiaryRequest request = CreateDiaryRequest.builder()
 			.title("제목입니다.")
 			.content("내용입니다.")
-			.date(LocalDate.of(2023, 12, 25))
+			.date(LocalDate.now())
 			.build();
 
 		// when & then
@@ -129,6 +130,43 @@ class DiaryServiceTest extends IntegrationTestSupport {
 
 		// then
 		assertThat(response.get("message")).isEqualTo("일기가 삭제되었습니다.");
+	}
+
+	@DisplayName("상세 조회하려는 일기가 존재하지 않는 경우 예외를 던진다.")
+	@Test
+	void getDiaryDetailWithNoDiary() {
+		// given
+		Member member = createMember("test@test.com", "hello");
+
+		// when & then
+		assertThatThrownBy(() -> diaryService.getDiaryDetail(member, 100L))
+			.isInstanceOf(DiaryException.class)
+			.hasMessage(DIARY_NOT_FOUND.getMessage());
+	}
+
+	@DisplayName("하나의 일기를 상세 조회한다.")
+	@Test
+	void getDiaryDetail() {
+		// given
+		Member member = createMember("test@test.com", "hello");
+
+		Diary diary = Diary.builder()
+			.title("제목")
+			.content("내용")
+			.member(member)
+			.emotionType(EmotionType.GOOD)
+			.date(LocalDate.now())
+			.build();
+
+		diaryRepository.save(diary);
+
+		// when
+		DiaryDetailResponse response = diaryService.getDiaryDetail(member, 1L);
+
+		// then
+		assertThat(response)
+			.extracting("id", "title", "content", "date", "emotionType", "writer")
+			.contains(1L, "제목", "내용", LocalDate.now(), EmotionType.GOOD, true);
 	}
 
 	private Member createMember(String email, String nickname) {
