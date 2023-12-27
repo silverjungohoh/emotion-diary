@@ -43,3 +43,82 @@ include::{snippets}/diary-controller-test/write-diary/http-response.adoc[]
 
 * Response Fields
 include::{snippets}/diary-controller-test/write-diary/response-fields.adoc[]
+
+=== 일기 삭제
+
+==== 실패 - 일기가 존재하지 않음
+
+*HTTP Request*
+include::{snippets}/diary-controller-test/delete-diary-with-no-diary/http-request.adoc[]
+
+* Path Parameters
+include::{snippets}/diary-controller-test/delete-diary-with-no-diary/path-parameters.adoc[]
+
+*HTTP Response*
+include::{snippets}/diary-controller-test/delete-diary-with-no-diary/http-response.adoc[]
+
+* Response Fields
+include::{snippets}/diary-controller-test/delete-diary-with-no-diary/response-fields.adoc[]
+
+==== 실패 - 삭제 권한 없음
+
+*HTTP Request*
+include::{snippets}/diary-controller-test/delete-diary-with-no-authority/http-request.adoc[]
+
+* Path Parameters
+
+include::{snippets}/diary-controller-test/delete-diary-with-no-authority/path-parameters.adoc[]
+
+*HTTP Response*
+include::{snippets}/diary-controller-test/delete-diary-with-no-authority/http-response.adoc[]
+
+* Response Fields
+include::{snippets}/diary-controller-test/delete-diary-with-no-authority/response-fields.adoc[]
+
+==== 성공
+
+*HTTP Request*
+include::{snippets}/diary-controller-test/delete-diary/http-request.adoc[]
+
+* Path Parameters
+
+include::{snippets}/diary-controller-test/delete-diary/path-parameters.adoc[]
+
+*HTTP Response*
+include::{snippets}/diary-controller-test/delete-diary/http-response.adoc[]
+
+* Response Fields
+include::{snippets}/diary-controller-test/delete-diary/response-fields.adoc[]
+
+
+=== 일기 상세 조회
+
+==== 실패 - 일기가 존재하지 않음
+
+*HTTP Request*
+include::{snippets}/diary-controller-test/get-diary-detail-with-no-diary/http-request.adoc[]
+
+* Path Parameters
+
+include::{snippets}/diary-controller-test/get-diary-detail-with-no-diary/path-parameters.adoc[]
+
+*HTTP Response*
+include::{snippets}/diary-controller-test/get-diary-detail-with-no-diary/http-response.adoc[]
+
+* Response Fields
+include::{snippets}/diary-controller-test/get-diary-detail-with-no-diary/response-fields.adoc[]
+
+==== 성공
+
+*HTTP Request*
+include::{snippets}/diary-controller-test/get-diary-detail/http-request.adoc[]
+
+* Path Parameters
+
+include::{snippets}/diary-controller-test/get-diary-detail/path-parameters.adoc[]
+
+*HTTP Response*
+include::{snippets}/diary-controller-test/get-diary-detail/http-response.adoc[]
+
+* Response Fields
+include::{snippets}/diary-controller-test/get-diary-detail/response-fields.adoc[]
