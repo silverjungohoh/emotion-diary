@@ -2,7 +2,12 @@ package com.project.emotiondiary.domain.diary.service;
 
 import static com.project.emotiondiary.global.error.type.DiaryErrorCode.*;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
+
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.project.emotiondiary.domain.diary.entity.Diary;
 import com.project.emotiondiary.domain.diary.entity.EmotionType;
@@ -20,9 +25,10 @@ public class DiaryService {
 
 	private final DiaryRepository diaryRepository;
 
-	public CreateDiaryResponse writeDiary (Member member, CreateDiaryRequest request) {
+	@Transactional
+	public CreateDiaryResponse writeDiary(Member member, CreateDiaryRequest request) {
 
-		if(diaryRepository.existsByDate(request.getDate())) {
+		if (diaryRepository.existsByDate(request.getDate())) {
 			throw new DiaryException(ONE_DIARY_PER_ONE_DAY);
 		}
 
@@ -37,5 +43,25 @@ public class DiaryService {
 		diaryRepository.save(diary);
 
 		return CreateDiaryResponse.from(diary);
+	}
+
+	@Transactional
+	public Map<String, String> deleteDiary(Member member, Long diaryId) {
+
+		Diary diary = diaryRepository.findById(diaryId)
+			.orElseThrow(() -> new DiaryException(DIARY_NOT_FOUND));
+
+		if(!Objects.equals(diary.getMember().getId(), member.getId())) {
+			throw new DiaryException(NO_AUTHORITY_TO_DELETE);
+		}
+
+		diaryRepository.delete(diary);
+		return getMessage("일기가 삭제되었습니다.");
+	}
+
+	private static Map<String, String> getMessage(String message) {
+		Map<String, String> result = new HashMap<>();
+		result.put("message", message);
+		return result;
 	}
 }
