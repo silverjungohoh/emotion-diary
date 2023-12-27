@@ -13,6 +13,7 @@ import com.project.emotiondiary.domain.diary.entity.Diary;
 import com.project.emotiondiary.domain.diary.entity.EmotionType;
 import com.project.emotiondiary.domain.diary.model.CreateDiaryRequest;
 import com.project.emotiondiary.domain.diary.model.CreateDiaryResponse;
+import com.project.emotiondiary.domain.diary.model.DiaryDetailResponse;
 import com.project.emotiondiary.domain.diary.repository.DiaryRepository;
 import com.project.emotiondiary.domain.member.entity.Member;
 import com.project.emotiondiary.global.error.exception.DiaryException;
@@ -57,6 +58,24 @@ public class DiaryService {
 
 		diaryRepository.delete(diary);
 		return getMessage("일기가 삭제되었습니다.");
+	}
+
+	@Transactional(readOnly = true)
+	public DiaryDetailResponse getDiaryDetail(Member member, Long diaryId) {
+
+		Diary diary = diaryRepository.findById(diaryId)
+			.orElseThrow(() -> new DiaryException(DIARY_NOT_FOUND));
+
+		boolean isWriter = Objects.equals(diary.getMember().getId(), member.getId());
+
+		return DiaryDetailResponse.builder()
+			.id(diary.getId())
+			.title(diary.getTitle())
+			.content(diary.getContent())
+			.date(diary.getDate())
+			.emotionType(diary.getEmotionType())
+			.writer(isWriter)
+			.build();
 	}
 
 	private static Map<String, String> getMessage(String message) {

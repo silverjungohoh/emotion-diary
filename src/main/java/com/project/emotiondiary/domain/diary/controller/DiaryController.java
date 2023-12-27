@@ -5,6 +5,7 @@ import java.util.Map;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -13,6 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.project.emotiondiary.domain.diary.model.CreateDiaryRequest;
 import com.project.emotiondiary.domain.diary.model.CreateDiaryResponse;
+import com.project.emotiondiary.domain.diary.model.DiaryDetailResponse;
 import com.project.emotiondiary.domain.diary.service.DiaryService;
 import com.project.emotiondiary.domain.member.entity.Member;
 import com.project.emotiondiary.global.auth.annotation.AuthRequired;
@@ -43,6 +45,15 @@ public class DiaryController {
 		@PathVariable(name = "diaryId") Long diaryId) {
 
 		Map<String, String> response = diaryService.deleteDiary(member, diaryId);
+		return ResponseEntity.ok(response);
+	}
+
+	@AuthRequired
+	@GetMapping("/{diaryId}")
+	public ResponseEntity<DiaryDetailResponse> getDiaryDetail(@AuthUser Member member,
+		@PathVariable(name = "diaryId") Long diaryId) {
+
+		DiaryDetailResponse response = diaryService.getDiaryDetail(member, diaryId);
 		return ResponseEntity.ok(response);
 	}
 }
