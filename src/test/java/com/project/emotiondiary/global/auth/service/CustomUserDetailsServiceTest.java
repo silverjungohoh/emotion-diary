@@ -6,25 +6,21 @@ import static org.assertj.core.api.AssertionsForInterfaceTypes.*;
 
 import java.util.Collection;
 
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.test.context.ActiveProfiles;
 
 import com.project.emotiondiary.domain.member.entity.Member;
 import com.project.emotiondiary.domain.member.repository.MemberRepository;
 import com.project.emotiondiary.global.auth.model.CustomUserDetails;
 import com.project.emotiondiary.global.error.exception.AuthException;
+import com.project.emotiondiary.helper.IntegrationTestSupport;
 
-@SpringBootTest
-@ActiveProfiles("test")
-class CustomUserDetailsServiceTest {
+class CustomUserDetailsServiceTest extends IntegrationTestSupport {
 
 	@Autowired
 	private MemberRepository memberRepository;
@@ -34,12 +30,6 @@ class CustomUserDetailsServiceTest {
 
 	@Autowired
 	private PasswordEncoder passwordEncoder;
-
-	@AfterEach
-	void tearDown() {
-		memberRepository.deleteAllInBatch();
-	}
-
 
 	@DisplayName("조회 시 회원이 존재하면 사용자 정보를 반환한다.")
 	@Test

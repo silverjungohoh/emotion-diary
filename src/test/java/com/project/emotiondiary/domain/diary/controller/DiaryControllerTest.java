@@ -6,9 +6,12 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.*;
 import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.*;
 import static org.springframework.restdocs.payload.PayloadDocumentation.*;
+import static org.springframework.restdocs.request.RequestDocumentation.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 import java.time.LocalDate;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -151,6 +154,87 @@ class DiaryControllerTest extends ControllerTestSupport {
 						fieldWithPath("content").description("일기 내용"),
 						fieldWithPath("date").description("날짜"),
 						fieldWithPath("emotionType").description("감정 점수에 기반한 감정 타입 (WORST/BAD/NORMAL/GOOD/BEST)")
+					)
+				)
+			);
+	}
+
+	@DisplayName("삭제하려는 일기가 존재하지 않는 경우 예외를 던진다.")
+	@Test
+	void deleteDiaryWithNoDiary() throws Exception {
+		// given
+		given(diaryService.deleteDiary(any(), anyLong())).willThrow(new DiaryException(DIARY_NOT_FOUND));
+
+		// when & then
+		mockMvc.perform(delete("/api/diaries/{diaryId}", 1L)
+				.header(AUTHORIZATION, String.format(BEARER_PREFIX, ACCESS_TOKEN)))
+			.andExpect(status().isNotFound())
+			.andExpect(jsonPath("$.code").value(DIARY_NOT_FOUND.getCode()))
+			.andExpect(jsonPath("$.status").value(DIARY_NOT_FOUND.getStatus()))
+			.andExpect(jsonPath("$.message").value(DIARY_NOT_FOUND.getMessage()))
+			.andDo(
+				restDocs.document(
+					pathParameters(
+						parameterWithName("diaryId").description("일기 고유 번호")
+					),
+					responseFields(
+						fieldWithPath("status").description("HTTP 상태 코드"),
+						fieldWithPath("message").description("에러 메세지"),
+						fieldWithPath("code").description("에러 코드"),
+						fieldWithPath("fieldErrors").description("유효성 검증 실패에 대한 정보")
+					)
+				)
+			);
+	}
+
+	@DisplayName("일기 삭제 권한이 없는 경우 예외를 던진다.")
+	@Test
+	void deleteDiaryWithNoAuthority() throws Exception {
+		// given
+		given(diaryService.deleteDiary(any(), anyLong())).willThrow(new DiaryException(NO_AUTHORITY_TO_DELETE));
+
+		// when & then
+		mockMvc.perform(delete("/api/diaries/{diaryId}", 1L)
+				.header(AUTHORIZATION, String.format(BEARER_PREFIX, ACCESS_TOKEN)))
+			.andExpect(status().isUnauthorized())
+			.andExpect(jsonPath("$.code").value(NO_AUTHORITY_TO_DELETE.getCode()))
+			.andExpect(jsonPath("$.status").value(NO_AUTHORITY_TO_DELETE.getStatus()))
+			.andExpect(jsonPath("$.message").value(NO_AUTHORITY_TO_DELETE.getMessage()))
+			.andDo(
+				restDocs.document(
+					pathParameters(
+						parameterWithName("diaryId").description("일기 고유 번호")
+					),
+					responseFields(
+						fieldWithPath("status").description("HTTP 상태 코드"),
+						fieldWithPath("message").description("에러 메세지"),
+						fieldWithPath("code").description("에러 코드"),
+						fieldWithPath("fieldErrors").description("유효성 검증 실패에 대한 정보")
+					)
+				)
+			);
+	}
+
+	@DisplayName("일기를 성공적으로 삭제한다.")
+	@Test
+	void deleteDiary() throws Exception {
+		// given
+		Map<String, String> response = new HashMap<>();
+		response.put("message", "일기가 삭제되었습니다.");
+
+		given(diaryService.deleteDiary(any(), anyLong())).willReturn(response);
+
+		// when & then
+		mockMvc.perform(delete("/api/diaries/{diaryId}", 1L)
+				.header(AUTHORIZATION, String.format(BEARER_PREFIX, ACCESS_TOKEN)))
+			.andExpect(status().isOk())
+			.andDo(
+				restDocs.document(
+					pathParameters(
+						parameterWithName("diaryId").description("일기 고유 번호")
+					),
+					responseFields(
+						fieldWithPath("message").description("응답 메세지")
 					)
 				)
 			);

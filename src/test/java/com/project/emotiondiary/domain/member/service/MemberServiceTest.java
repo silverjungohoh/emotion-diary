@@ -6,13 +6,10 @@ import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThatThrownB
 
 import java.util.Map;
 
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.test.context.ActiveProfiles;
 
 import com.project.emotiondiary.domain.member.entity.Gender;
 import com.project.emotiondiary.domain.member.entity.Member;
@@ -22,10 +19,9 @@ import com.project.emotiondiary.domain.member.model.SignUpRequest;
 import com.project.emotiondiary.domain.member.model.SignUpResponse;
 import com.project.emotiondiary.domain.member.repository.MemberRepository;
 import com.project.emotiondiary.global.error.exception.MemberException;
+import com.project.emotiondiary.helper.IntegrationTestSupport;
 
-@SpringBootTest
-@ActiveProfiles("test")
-class MemberServiceTest {
+class MemberServiceTest extends IntegrationTestSupport {
 
 	@Autowired
 	private MemberRepository memberRepository;
@@ -36,10 +32,6 @@ class MemberServiceTest {
 	@Autowired
 	private PasswordEncoder passwordEncoder;
 
-	@AfterEach
-	void tearDown() {
-		memberRepository.deleteAllInBatch();
-	}
 
 	@DisplayName("입력 받은 이메일이 이미 존재하는 경우 예외를 던진다.")
 	@Test
