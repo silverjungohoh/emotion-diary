@@ -15,6 +15,8 @@ import com.project.emotiondiary.domain.diary.entity.EmotionType;
 import com.project.emotiondiary.domain.diary.model.CreateDiaryRequest;
 import com.project.emotiondiary.domain.diary.model.CreateDiaryResponse;
 import com.project.emotiondiary.domain.diary.model.DiaryDetailResponse;
+import com.project.emotiondiary.domain.diary.model.UpdateDiaryRequest;
+import com.project.emotiondiary.domain.diary.model.UpdateDiaryResponse;
 import com.project.emotiondiary.domain.diary.repository.DiaryRepository;
 import com.project.emotiondiary.domain.member.entity.Member;
 import com.project.emotiondiary.domain.member.repository.MemberRepository;
@@ -167,6 +169,87 @@ class DiaryServiceTest extends IntegrationTestSupport {
 		assertThat(response)
 			.extracting("id", "title", "content", "date", "emotionType", "writer")
 			.contains(1L, "제목", "내용", LocalDate.now(), EmotionType.GOOD, true);
+	}
+
+	@DisplayName("수정하려는 일기가 존재하지 않는 경우 예외를 던진다.")
+	@Test
+	void updateDiaryWithNoDiary() {
+		// given
+		Member member = createMember("test@test.com", "hello");
+
+		UpdateDiaryRequest request = UpdateDiaryRequest.builder()
+			.title("수정한 제목")
+			.content("수정한 내용")
+			.score(3)
+			.date(LocalDate.now().minusDays(1))
+			.build();
+
+		// when & then
+		assertThatThrownBy(() -> diaryService.updateDiary(member, 100L, request))
+			.isInstanceOf(DiaryException.class)
+			.hasMessage(DIARY_NOT_FOUND.getMessage());
+	}
+
+	@DisplayName("일기 수정 권한이 없는 경우 예외를 던진다.")
+	@Test
+	void updateDiaryWithNoAuthority() {
+		// given
+		Member member1 = createMember("test@test.com", "hello");
+		Member member2 = createMember("java@java.com", "hi");
+
+		Diary diary = Diary.builder()
+			.title("제목")
+			.content("내용")
+			.member(member1)
+			.emotionType(EmotionType.GOOD)
+			.date(LocalDate.now())
+			.build();
+
+		diaryRepository.save(diary);
+
+		UpdateDiaryRequest request = UpdateDiaryRequest.builder()
+			.title("수정한 제목")
+			.content("수정한 내용")
+			.score(3)
+			.date(LocalDate.now().minusDays(1))
+			.build();
+
+		// when & then
+		assertThatThrownBy(() -> diaryService.updateDiary(member2, 1L, request))
+			.isInstanceOf(DiaryException.class)
+			.hasMessage(NO_AUTHORITY_TO_UPDATE.getMessage());
+	}
+
+	@DisplayName("일기를 성공적으로 수정한다.")
+	@Test
+	void updateDiary() {
+		// given
+		Member member = createMember("test@test.com", "hello");
+
+		Diary diary = Diary.builder()
+			.title("제목")
+			.content("내용")
+			.member(member)
+			.emotionType(EmotionType.GOOD)
+			.date(LocalDate.now())
+			.build();
+
+		diaryRepository.save(diary);
+
+		UpdateDiaryRequest request = UpdateDiaryRequest.builder()
+			.title("수정한 제목")
+			.content("수정한 내용")
+			.score(3)
+			.date(LocalDate.now().minusDays(1))
+			.build();
+
+		// when
+		UpdateDiaryResponse response = diaryService.updateDiary(member, 1L, request);
+
+		// then
+		assertThat(response)
+			.extracting("id", "title", "content", "date", "emotionType")
+			.contains(1L, "수정한 제목", "수정한 내용", LocalDate.now().minusDays(1), EmotionType.NORMAL);
 	}
 
 	private Member createMember(String email, String nickname) {

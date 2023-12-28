@@ -21,6 +21,8 @@ import com.project.emotiondiary.domain.diary.entity.EmotionType;
 import com.project.emotiondiary.domain.diary.model.CreateDiaryRequest;
 import com.project.emotiondiary.domain.diary.model.CreateDiaryResponse;
 import com.project.emotiondiary.domain.diary.model.DiaryDetailResponse;
+import com.project.emotiondiary.domain.diary.model.UpdateDiaryRequest;
+import com.project.emotiondiary.domain.diary.model.UpdateDiaryResponse;
 import com.project.emotiondiary.global.error.exception.DiaryException;
 import com.project.emotiondiary.helper.ControllerTestSupport;
 
@@ -297,6 +299,123 @@ class DiaryControllerTest extends ControllerTestSupport {
 						fieldWithPath("date").description("날짜"),
 						fieldWithPath("emotionType").description("감정 점수에 기반한 감정 타입 (WORST/BAD/NORMAL/GOOD/BEST)"),
 						fieldWithPath("isWriter").description("일기 작성자 여부 (true/false)")
+					)
+				)
+			);
+	}
+
+	@DisplayName("수정하려는 일기가 존재하지 않는 경우 예외를 던진다.")
+	@Test
+	void updateDiaryWithNoDiary() throws Exception {
+		// given
+		UpdateDiaryRequest request = UpdateDiaryRequest.builder()
+			.title("수정한 제목")
+			.content("수정한 내용")
+			.date(LocalDate.now().minusDays(1))
+			.score(3)
+			.build();
+
+		given(diaryService.updateDiary(any(), anyLong(), any())).willThrow(new DiaryException(DIARY_NOT_FOUND));
+
+		// when & then
+		mockMvc.perform(patch("/api/diaries/{diaryId}", 1L)
+				.header(AUTHORIZATION, String.format(BEARER_PREFIX, ACCESS_TOKEN))
+				.content(objectMapper.writeValueAsString(request))
+				.contentType(MediaType.APPLICATION_JSON))
+			.andExpect(status().isNotFound())
+			.andExpect(jsonPath("$.code").value(DIARY_NOT_FOUND.getCode()))
+			.andExpect(jsonPath("$.status").value(DIARY_NOT_FOUND.getStatus()))
+			.andExpect(jsonPath("$.message").value(DIARY_NOT_FOUND.getMessage()))
+			.andDo(
+				restDocs.document(
+					pathParameters(
+						parameterWithName("diaryId").description("수정하려는 일기 고유 번호")
+					),
+					responseFields(
+						fieldWithPath("status").description("HTTP 상태 코드"),
+						fieldWithPath("message").description("에러 메세지"),
+						fieldWithPath("code").description("에러 코드"),
+						fieldWithPath("fieldErrors").description("유효성 검증 실패에 대한 정보")
+					)
+				)
+			);
+	}
+
+	@DisplayName("일기 수정 권한이 없는 경우 예외를 던진다.")
+	@Test
+	void updateDiaryWithNoAuthority() throws Exception {
+		// given
+		UpdateDiaryRequest request = UpdateDiaryRequest.builder()
+			.title("수정한 제목")
+			.content("수정한 내용")
+			.date(LocalDate.now().minusDays(1))
+			.score(3)
+			.build();
+
+		given(diaryService.updateDiary(any(), anyLong(), any())).willThrow(new DiaryException(NO_AUTHORITY_TO_UPDATE));
+
+		// when & then
+		mockMvc.perform(patch("/api/diaries/{diaryId}", 1L)
+				.header(AUTHORIZATION, String.format(BEARER_PREFIX, ACCESS_TOKEN))
+				.content(objectMapper.writeValueAsString(request))
+				.contentType(MediaType.APPLICATION_JSON))
+			.andExpect(status().isUnauthorized())
+			.andExpect(jsonPath("$.code").value(NO_AUTHORITY_TO_UPDATE.getCode()))
+			.andExpect(jsonPath("$.status").value(NO_AUTHORITY_TO_UPDATE.getStatus()))
+			.andExpect(jsonPath("$.message").value(NO_AUTHORITY_TO_UPDATE.getMessage()))
+			.andDo(
+				restDocs.document(
+					pathParameters(
+						parameterWithName("diaryId").description("수정하려는 일기 고유 번호")
+					),
+					responseFields(
+						fieldWithPath("status").description("HTTP 상태 코드"),
+						fieldWithPath("message").description("에러 메세지"),
+						fieldWithPath("code").description("에러 코드"),
+						fieldWithPath("fieldErrors").description("유효성 검증 실패에 대한 정보")
+					)
+				)
+			);
+	}
+
+	@DisplayName("일기를 성공적으로 수정한다.")
+	@Test
+	void updateDiary() throws Exception {
+		// given
+		UpdateDiaryRequest request = UpdateDiaryRequest.builder()
+			.title("수정한 제목")
+			.content("수정한 내용")
+			.date(LocalDate.now().minusDays(1))
+			.score(3)
+			.build();
+
+		UpdateDiaryResponse response = UpdateDiaryResponse.builder()
+			.id(1L)
+			.title("수정한 제목")
+			.content("수정한 내용")
+			.date(LocalDate.now().minusDays(1))
+			.emotionType(EmotionType.NORMAL)
+			.build();
+
+		given(diaryService.updateDiary(any(), anyLong(), any())).willReturn(response);
+
+		// when & then
+		mockMvc.perform(patch("/api/diaries/{diaryId}", 1L)
+				.header(AUTHORIZATION, String.format(BEARER_PREFIX, ACCESS_TOKEN))
+				.content(objectMapper.writeValueAsString(request))
+				.contentType(MediaType.APPLICATION_JSON))
+			.andExpect(status().isOk())
+			.andDo(
+				restDocs.document(
+					pathParameters(
+						parameterWithName("diaryId").description("수정하려는 일기 고유 번호")
+					),
+					responseFields(
+						fieldWithPath("id").description("일기 고유 번호"),
+						fieldWithPath("title").description("일기 제목"),
+						fieldWithPath("content").description("일기 내용"),
+						fieldWithPath("date").description("날짜"),
+						fieldWithPath("emotionType").description("감정 점수에 기반한 감정 타입 (WORST/BAD/NORMAL/GOOD/BEST)")
 					)
 				)
 			);

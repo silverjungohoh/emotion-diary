@@ -3,7 +3,7 @@ package com.project.emotiondiary.domain.diary.entity;
 import java.time.LocalDate;
 
 import com.project.emotiondiary.domain.member.entity.Member;
-import com.project.emotiondiary.global.common.entity.BaseTimeEntity;
+import com.project.emotiondiary.global.entity.BaseTimeEntity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -52,5 +52,12 @@ public class Diary extends BaseTimeEntity {
 		this.emotionType = emotionType;
 		this.date = date;
 		this.member = member;
+	}
+
+	public void update(String title, String content, EmotionType emotionType, LocalDate date) {
+		this.title = title;
+		this.content = content;
+		this.emotionType = emotionType;
+		this.date = date;
 	}
 }

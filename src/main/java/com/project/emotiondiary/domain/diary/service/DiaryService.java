@@ -14,6 +14,8 @@ import com.project.emotiondiary.domain.diary.entity.EmotionType;
 import com.project.emotiondiary.domain.diary.model.CreateDiaryRequest;
 import com.project.emotiondiary.domain.diary.model.CreateDiaryResponse;
 import com.project.emotiondiary.domain.diary.model.DiaryDetailResponse;
+import com.project.emotiondiary.domain.diary.model.UpdateDiaryRequest;
+import com.project.emotiondiary.domain.diary.model.UpdateDiaryResponse;
 import com.project.emotiondiary.domain.diary.repository.DiaryRepository;
 import com.project.emotiondiary.domain.member.entity.Member;
 import com.project.emotiondiary.global.error.exception.DiaryException;
@@ -52,7 +54,7 @@ public class DiaryService {
 		Diary diary = diaryRepository.findById(diaryId)
 			.orElseThrow(() -> new DiaryException(DIARY_NOT_FOUND));
 
-		if(!Objects.equals(diary.getMember().getId(), member.getId())) {
+		if (!Objects.equals(diary.getMember().getId(), member.getId())) {
 			throw new DiaryException(NO_AUTHORITY_TO_DELETE);
 		}
 
@@ -76,6 +78,22 @@ public class DiaryService {
 			.emotionType(diary.getEmotionType())
 			.writer(isWriter)
 			.build();
+	}
+
+	@Transactional
+	public UpdateDiaryResponse updateDiary(Member member, Long diaryId, UpdateDiaryRequest request) {
+
+		Diary diary = diaryRepository.findById(diaryId)
+			.orElseThrow(() -> new DiaryException(DIARY_NOT_FOUND));
+
+		if (!Objects.equals(diary.getMember().getId(), member.getId())) {
+			throw new DiaryException(NO_AUTHORITY_TO_UPDATE);
+		}
+
+		EmotionType newType = EmotionType.getEmotionType(request.getScore());
+		diary.update(request.getTitle(), request.getContent(), newType, request.getDate());
+
+		return UpdateDiaryResponse.from(diary);
 	}
 
 	private static Map<String, String> getMessage(String message) {
