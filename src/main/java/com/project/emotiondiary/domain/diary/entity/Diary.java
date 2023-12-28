@@ -53,4 +53,11 @@ public class Diary extends BaseTimeEntity {
 		this.date = date;
 		this.member = member;
 	}
+
+	public void update(String title, String content, EmotionType emotionType, LocalDate date) {
+		this.title = title;
+		this.content = content;
+		this.emotionType = emotionType;
+		this.date = date;
+	}
 }
