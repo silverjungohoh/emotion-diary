@@ -1,4 +1,4 @@
-package com.project.emotiondiary.global.common.entity;
+package com.project.emotiondiary.global.entity;
 
 import java.time.LocalDateTime;
 

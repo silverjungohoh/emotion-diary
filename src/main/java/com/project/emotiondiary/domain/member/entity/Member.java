@@ -1,6 +1,6 @@
 package com.project.emotiondiary.domain.member.entity;
 
-import com.project.emotiondiary.global.common.entity.BaseTimeEntity;
+import com.project.emotiondiary.global.entity.BaseTimeEntity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -35,7 +35,7 @@ public class Member extends BaseTimeEntity {
 	@Enumerated(EnumType.STRING)
 	private Gender gender;
 
-	@Enumerated
+	@Enumerated(EnumType.STRING)
 	private Role role;
 
 	@Builder
