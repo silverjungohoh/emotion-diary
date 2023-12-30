@@ -92,6 +92,16 @@ dependencies {
     implementation 'io.jsonwebtoken:jjwt-impl:0.11.5'
     implementation 'io.jsonwebtoken:jjwt-jackson:0.11.5'
 
+    implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+    testImplementation  ('it.ozimov:embedded-redis:0.7.3') {
+        exclude group: "com.google.guava", module: "guava"
+        exclude group: "org.slf4j", module: "slf4j-simple"
+        exclude group: 'commons-logging', module: 'commons-logging'
+        exclude group: "commons-io", module: "commons-io"
+    }
+    testImplementation 'com.google.guava:guava:32.0.1-jre'
+    testImplementation 'commons-io:commons-io:2.11.0'
+
     asciidoctorExt 'org.springframework.restdocs:spring-restdocs-asciidoctor'
     runtimeOnly 'com.h2database:h2'
     annotationProcessor 'org.projectlombok:lombok'
@@ -118,7 +128,7 @@ tasks.named('test') {
 asciidoctor {
     inputs.dir snippetsDir
     configurations 'asciidoctorExt'
-    sources{
+    sources {
         include("**/index.adoc")
     }
     baseDirFollowsSourceFile()
