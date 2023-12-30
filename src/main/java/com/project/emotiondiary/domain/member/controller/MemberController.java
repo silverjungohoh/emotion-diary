@@ -7,12 +7,14 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.project.emotiondiary.domain.member.model.LoginRequest;
 import com.project.emotiondiary.domain.member.model.LoginResponse;
+import com.project.emotiondiary.domain.member.model.ReissueResponse;
 import com.project.emotiondiary.domain.member.model.SignUpRequest;
 import com.project.emotiondiary.domain.member.model.SignUpResponse;
 import com.project.emotiondiary.domain.member.service.MemberService;
@@ -53,6 +55,13 @@ public class MemberController {
 	public ResponseEntity<LoginResponse> login(@RequestBody LoginRequest request) {
 
 		LoginResponse response = memberService.login(request);
+		return ResponseEntity.ok(response);
+	}
+
+	@PostMapping("/refresh")
+	public ResponseEntity<ReissueResponse> reissueToken(@RequestHeader(name = "REFRESH") String refreshToken) {
+
+		ReissueResponse response = memberService.reissueToken(refreshToken);
 		return ResponseEntity.ok(response);
 	}
 }

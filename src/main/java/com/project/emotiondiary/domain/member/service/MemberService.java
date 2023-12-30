@@ -15,12 +15,14 @@ import com.project.emotiondiary.domain.member.entity.Member;
 import com.project.emotiondiary.domain.member.entity.Role;
 import com.project.emotiondiary.domain.member.model.LoginRequest;
 import com.project.emotiondiary.domain.member.model.LoginResponse;
+import com.project.emotiondiary.domain.member.model.ReissueResponse;
 import com.project.emotiondiary.domain.member.model.SignUpRequest;
 import com.project.emotiondiary.domain.member.model.SignUpResponse;
 import com.project.emotiondiary.domain.member.repository.MemberRepository;
 import com.project.emotiondiary.global.auth.jwt.JwtProvider;
 import com.project.emotiondiary.global.auth.model.RefreshToken;
 import com.project.emotiondiary.global.auth.repository.RefreshTokenRepository;
+import com.project.emotiondiary.global.error.exception.AuthException;
 import com.project.emotiondiary.global.error.exception.MemberException;
 
 import lombok.RequiredArgsConstructor;
@@ -100,6 +102,27 @@ public class MemberService {
 		);
 
 		return new LoginResponse(accessToken, refreshToken);
+	}
+
+	@Transactional
+	public ReissueResponse reissueToken(String refreshToken) {
+		RefreshToken token = refreshTokenRepository.findById(refreshToken)
+			.orElseThrow(() -> new MemberException(REISSUE_TOKEN_FAILED));
+
+		try {
+			jwtProvider.validateToken(token.getId());
+		} catch (AuthException e) {
+			throw new MemberException(REISSUE_TOKEN_FAILED);
+		}
+
+		String email = jwtProvider.extractEmail(refreshToken);
+
+		Member member = memberRepository.findByEmail(email)
+			.orElseThrow(() -> new MemberException(MEMBER_NOT_FOUND));
+
+		String accessToken = jwtProvider.generateAccessToken(email, member.getRole());
+
+		return new ReissueResponse(accessToken);
 	}
 
 	private static Map<String, String> getMessage(String message) {
