@@ -1,5 +1,6 @@
 package com.project.emotiondiary.global.auth.jwt;
 
+import static com.project.emotiondiary.domain.member.entity.Role.*;
 import static com.project.emotiondiary.global.error.type.AuthErrorCode.*;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
@@ -14,20 +15,17 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.ActiveProfiles;
 
 import com.project.emotiondiary.domain.member.entity.Role;
 import com.project.emotiondiary.global.error.exception.AuthException;
+import com.project.emotiondiary.helper.IntegrationTestSupport;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
 
-@SpringBootTest
-@ActiveProfiles("test")
-class JwtProviderTest {
+class JwtProviderTest extends IntegrationTestSupport {
 
 	@Value("${spring.jwt.secret}")
 	private String secretKey;
@@ -41,7 +39,7 @@ class JwtProviderTest {
 	void generateAccessToken() {
 		// given
 		String email = "test@test.com";
-		Role role = Role.ROLE_USER;
+		Role role = ROLE_USER;
 
 		// when
 		String token = jwtProvider.generateAccessToken(email, role);
@@ -134,10 +132,24 @@ class JwtProviderTest {
 		assertThat(email).isEqualTo("test@test.com");
 	}
 
+	@DisplayName("토큰에서 역할 정보를 추출한다.")
+	@Test
+	void extractRole() {
+		// given
+		String token = createToken(1800000L);
+
+		// when
+		String role = jwtProvider.extractRole(token);
+
+		// then
+		assertThat(role).isEqualTo(ROLE_USER.name());
+	}
+
 	private String createToken(Long tokenValid) {
 		Date now = new Date();
 		Map<String, Object> claims = new HashMap<>();
 		claims.put("email", "test@test.com");
+		claims.put("role", ROLE_USER);
 		return Jwts.builder()
 			.setClaims(claims)
 			.setIssuedAt(now)

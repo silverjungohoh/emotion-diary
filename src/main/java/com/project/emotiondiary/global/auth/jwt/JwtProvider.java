@@ -104,6 +104,15 @@ public class JwtProvider {
 			.get("email", String.class);
 	}
 
+	public String extractRole(String token) {
+		return Jwts.parserBuilder()
+			.setSigningKey(key)
+			.build()
+			.parseClaimsJws(token)
+			.getBody()
+			.get("role", String.class);
+	}
+
 	private static Map<String, Object> createClaims(String email, String type) {
 		Map<String, Object> claims = new HashMap<>();
 		claims.put(TYPE_CLAIM_KEY, type);

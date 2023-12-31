@@ -3,6 +3,7 @@ package com.project.emotiondiary.domain.member.controller;
 import static com.project.emotiondiary.global.error.type.CommonErrorCode.*;
 import static com.project.emotiondiary.global.error.type.MemberErrorCode.*;
 import static org.mockito.BDDMockito.*;
+import static org.springframework.restdocs.headers.HeaderDocumentation.*;
 import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.*;
 import static org.springframework.restdocs.payload.PayloadDocumentation.*;
 import static org.springframework.restdocs.request.RequestDocumentation.*;
@@ -18,6 +19,7 @@ import org.springframework.http.MediaType;
 import com.project.emotiondiary.domain.member.entity.Gender;
 import com.project.emotiondiary.domain.member.model.LoginRequest;
 import com.project.emotiondiary.domain.member.model.LoginResponse;
+import com.project.emotiondiary.domain.member.model.ReissueResponse;
 import com.project.emotiondiary.domain.member.model.SignUpRequest;
 import com.project.emotiondiary.domain.member.model.SignUpResponse;
 import com.project.emotiondiary.global.error.exception.MemberException;
@@ -344,14 +346,8 @@ class MemberControllerTest extends ControllerTestSupport {
 			.build();
 
 		LoginResponse response = LoginResponse.builder()
-			.accessToken(
-				"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9"
-					+ ".eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ"
-					+ ".SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c")
-			.refreshToken(
-				"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9"
-					+ ".eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ"
-					+ ".SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c")
+			.accessToken("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9")
+			.refreshToken("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9")
 			.build();
 
 		given(memberService.login(any())).willReturn(response);
@@ -372,6 +368,90 @@ class MemberControllerTest extends ControllerTestSupport {
 					responseFields(
 						fieldWithPath("accessToken").description("회원 access token"),
 						fieldWithPath("refreshToken").description("회원 refresh token")
+					)
+				)
+			);
+	}
+
+	@DisplayName("refresh token이 존재하지 않거나 유효하지 않으면 예외를 던진다.")
+	@Test
+	void reissueWithRefreshTokenInvalidOrNotFound() throws Exception {
+		// given
+		given(memberService.reissueToken(anyString())).willThrow(new MemberException(REISSUE_TOKEN_FAILED));
+
+		// when & then
+		mockMvc.perform(post("/api/members/refresh")
+				.header("REFRESH", "eyJhbGciOiJIUzI1NiIsInR5cCI6Ikp")
+				.contentType(MediaType.APPLICATION_JSON))
+			.andExpect(status().isUnauthorized())
+			.andExpect(jsonPath("$.code").value(REISSUE_TOKEN_FAILED.getCode()))
+			.andExpect(jsonPath("$.status").value(REISSUE_TOKEN_FAILED.getStatus()))
+			.andExpect(jsonPath("$.message").value(REISSUE_TOKEN_FAILED.getMessage()))
+			.andDo(
+				restDocs.document(
+					requestHeaders(
+						headerWithName("REFRESH").description("access token 재발급을 위한 refresh token")
+					),
+					responseFields(
+						fieldWithPath("status").description("HTTP 상태 코드"),
+						fieldWithPath("message").description("에러 메세지"),
+						fieldWithPath("code").description("에러 코드"),
+						fieldWithPath("fieldErrors").description("유효성 검증 실패에 대한 정보")
+					)
+				)
+			);
+	}
+
+	@DisplayName("refresh token에서 추출한 이메일을 가진 회원이 존재하지 않으면 예외를 던진다." )
+	@Test
+	void reissueWithNotFoundMember() throws Exception {
+		// given
+		given(memberService.reissueToken(anyString())).willThrow(new MemberException(MEMBER_NOT_FOUND));
+
+		// when & then
+		mockMvc.perform(post("/api/members/refresh")
+				.header("REFRESH", "eyJhbGciOiJIUzI1NiIsInR5cCI6Ikp")
+				.contentType(MediaType.APPLICATION_JSON))
+			.andExpect(status().isNotFound())
+			.andExpect(jsonPath("$.code").value(MEMBER_NOT_FOUND.getCode()))
+			.andExpect(jsonPath("$.status").value(MEMBER_NOT_FOUND.getStatus()))
+			.andExpect(jsonPath("$.message").value(MEMBER_NOT_FOUND.getMessage()))
+			.andDo(
+				restDocs.document(
+					requestHeaders(
+						headerWithName("REFRESH").description("access token 재발급을 위한 refresh token")
+					),
+					responseFields(
+						fieldWithPath("status").description("HTTP 상태 코드"),
+						fieldWithPath("message").description("에러 메세지"),
+						fieldWithPath("code").description("에러 코드"),
+						fieldWithPath("fieldErrors").description("유효성 검증 실패에 대한 정보")
+					)
+				)
+			);
+	}
+
+	@DisplayName("refresh token 통해 access token 발급받는다.")
+	@Test
+	void reissue() throws Exception {
+		// given
+		ReissueResponse response = new ReissueResponse("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9");
+
+		given(memberService.reissueToken(anyString())).willReturn(response);
+
+		// when & then
+		mockMvc.perform(post("/api/members/refresh")
+				.header("REFRESH", "eyJhbGciOiJIUzI1NiIsInR5cCI6Ikp")
+				.contentType(MediaType.APPLICATION_JSON))
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("$.accessToken").value(response.getAccessToken()))
+			.andDo(
+				restDocs.document(
+					requestHeaders(
+						headerWithName("REFRESH").description("access token 재발급을 위한 refresh token")
+					),
+					responseFields(
+						fieldWithPath("accessToken").description("회원의 새로운 access token")
 					)
 				)
 			);
