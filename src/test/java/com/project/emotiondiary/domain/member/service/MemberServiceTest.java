@@ -5,6 +5,7 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThatThrownBy;
 
 import java.util.Map;
+import java.util.Optional;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -13,11 +14,16 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 
 import com.project.emotiondiary.domain.member.entity.Gender;
 import com.project.emotiondiary.domain.member.entity.Member;
+import com.project.emotiondiary.domain.member.entity.Role;
 import com.project.emotiondiary.domain.member.model.LoginRequest;
 import com.project.emotiondiary.domain.member.model.LoginResponse;
+import com.project.emotiondiary.domain.member.model.ReissueResponse;
 import com.project.emotiondiary.domain.member.model.SignUpRequest;
 import com.project.emotiondiary.domain.member.model.SignUpResponse;
 import com.project.emotiondiary.domain.member.repository.MemberRepository;
+import com.project.emotiondiary.global.auth.jwt.JwtProvider;
+import com.project.emotiondiary.global.auth.model.RefreshToken;
+import com.project.emotiondiary.global.auth.repository.RefreshTokenRepository;
 import com.project.emotiondiary.global.error.exception.MemberException;
 import com.project.emotiondiary.helper.IntegrationTestSupport;
 
@@ -31,6 +37,12 @@ class MemberServiceTest extends IntegrationTestSupport {
 
 	@Autowired
 	private PasswordEncoder passwordEncoder;
+
+	@Autowired
+	private RefreshTokenRepository refreshTokenRepository;
+
+	@Autowired
+	private JwtProvider jwtProvider;
 
 
 	@DisplayName("입력 받은 이메일이 이미 존재하는 경우 예외를 던진다.")
@@ -186,5 +198,92 @@ class MemberServiceTest extends IntegrationTestSupport {
 		// then
 		assertThat(response.getAccessToken()).isNotNull();
 		assertThat(response.getRefreshToken()).isNotNull();
+
+		Optional<RefreshToken> refreshToken = refreshTokenRepository.findById(response.getRefreshToken());
+		assertThat(refreshToken.isPresent()).isTrue();
+	}
+
+	@DisplayName("redis에 저장된 refresh token이 없으면 예외를 던진다.")
+	@Test
+	void reissueWithNoRefreshTokenInRedis() {
+		// given
+		String refreshToken = jwtProvider.generateRefreshToken("test@test.com");
+
+		// when & then
+		assertThatThrownBy(() -> memberService.reissueToken(refreshToken))
+			.isInstanceOf(MemberException.class)
+			.hasMessage(REISSUE_TOKEN_FAILED.getMessage());
+	}
+
+	@DisplayName("redis에 저장된 refresh token이 유효하지 않으면 예외를 던진다.")
+	@Test
+	void reissueWithInvalidRefreshToken() {
+		// given
+		String refreshToken = "hello1234";
+		RefreshToken token = RefreshToken.builder()
+			.id(refreshToken)
+			.email("test@test.com")
+			.expiration(1800000L)
+			.build();
+
+		refreshTokenRepository.save(token);
+
+		// when & then
+		assertThatThrownBy(() -> memberService.reissueToken(refreshToken))
+			.isInstanceOf(MemberException.class)
+			.hasMessage(REISSUE_TOKEN_FAILED.getMessage());
+	}
+
+	@DisplayName("refresh token에서 추출한 이메일을 가진 회원이 존재하지 않으면 예외를 던진다.")
+	@Test
+	void reissueWithNotFoundMember() {
+		// given
+		String refreshToken = jwtProvider.generateRefreshToken("test@test.com");
+
+		RefreshToken token = RefreshToken.builder()
+			.id(refreshToken)
+			.email("test@test.com")
+			.expiration(1800000L)
+			.build();
+
+		refreshTokenRepository.save(token);
+
+		// when & then
+		assertThatThrownBy(() -> memberService.reissueToken(refreshToken))
+			.isInstanceOf(MemberException.class)
+			.hasMessage(MEMBER_NOT_FOUND.getMessage());
+	}
+
+	@DisplayName("refresh token 통해 access token 발급받는다.")
+	@Test
+	void reissue() {
+		// given
+		Member member = Member.builder()
+			.email("test@test.com")
+			.role(Role.ROLE_USER)
+			.build();
+
+		memberRepository.save(member);
+
+		String refreshToken = jwtProvider.generateRefreshToken("test@test.com");
+
+		RefreshToken token = RefreshToken.builder()
+			.id(refreshToken)
+			.email("test@test.com")
+			.expiration(1800000L)
+			.build();
+
+		refreshTokenRepository.save(token);
+
+		// when
+		ReissueResponse response = memberService.reissueToken(refreshToken);
+
+		// then
+		assertThat(response.getAccessToken()).isNotNull();
+
+		String emailInToken = jwtProvider.extractEmail(response.getAccessToken());
+		String roleInToken = jwtProvider.extractRole(response.getAccessToken());
+		assertThat(emailInToken).isEqualTo("test@test.com");
+		assertThat(roleInToken).isEqualTo(Role.ROLE_USER.name());
 	}
 }
