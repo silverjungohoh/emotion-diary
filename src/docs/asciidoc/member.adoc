@@ -150,3 +150,51 @@ include::{snippets}/member-controller-test/login/http-response.adoc[]
 
 * Response Fields
 include::{snippets}/member-controller-test/login/response-fields.adoc[]
+
+=== 회원 Access Token 재발급
+
+
+==== 실패 - 토큰이 존재하지 않거나 유효하지 않음
+
+*HTTP Request*
+include::{snippets}/member-controller-test/reissue-with-refresh-token-invalid-or-not-found/http-request.adoc[]
+
+* Request Headers
+include::{snippets}/member-controller-test/reissue-with-refresh-token-invalid-or-not-found/request-headers.adoc[]
+
+*HTTP Response*
+include::{snippets}/member-controller-test/reissue-with-refresh-token-invalid-or-not-found/http-response.adoc[]
+
+* Response Fields
+include::{snippets}/member-controller-test/reissue-with-refresh-token-invalid-or-not-found/response-fields.adoc[]
+
+
+==== 실패 - 회원이 존재하지 않음
+
+토큰에서 추출한 이메일을 가진 회원이 존재하지 않음
+
+*HTTP Request*
+include::{snippets}/member-controller-test/reissue-with-not-found-member/http-request.adoc[]
+
+* Request Headers
+include::{snippets}/member-controller-test/reissue-with-not-found-member/request-headers.adoc[]
+
+*HTTP Response*
+include::{snippets}/member-controller-test/reissue-with-not-found-member/http-response.adoc[]
+
+* Response Fields
+include::{snippets}/member-controller-test/reissue-with-not-found-member/response-fields.adoc[]
+
+==== 성공
+
+*HTTP Request*
+include::{snippets}/member-controller-test/reissue/http-request.adoc[]
+
+* Request Headers
+include::{snippets}/member-controller-test/reissue/request-headers.adoc[]
+
+*HTTP Response*
+include::{snippets}/member-controller-test/reissue/http-response.adoc[]
+
+* Response Fields
+include::{snippets}/member-controller-test/reissue/response-fields.adoc[]
