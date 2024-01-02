@@ -6,6 +6,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -16,6 +17,8 @@ import org.springframework.web.bind.annotation.RestController;
 import com.project.emotiondiary.domain.diary.model.CreateDiaryRequest;
 import com.project.emotiondiary.domain.diary.model.CreateDiaryResponse;
 import com.project.emotiondiary.domain.diary.model.DiaryDetailResponse;
+import com.project.emotiondiary.domain.diary.model.DiaryListResponse;
+import com.project.emotiondiary.domain.diary.model.DiaryRequestParam;
 import com.project.emotiondiary.domain.diary.model.UpdateDiaryRequest;
 import com.project.emotiondiary.domain.diary.model.UpdateDiaryResponse;
 import com.project.emotiondiary.domain.diary.service.DiaryService;
@@ -66,6 +69,14 @@ public class DiaryController {
 		@PathVariable(name = "diaryId") Long diaryId, @Valid @RequestBody UpdateDiaryRequest request) {
 
 		UpdateDiaryResponse response = diaryService.updateDiary(member, diaryId, request);
+		return ResponseEntity.ok(response);
+	}
+
+	@AuthRequired
+	@GetMapping
+	public ResponseEntity<DiaryListResponse> getDiaryList(@AuthUser Member member,
+		@ModelAttribute DiaryRequestParam param) {
+		DiaryListResponse response = diaryService.getMyDiaryListByMonth(member, param);
 		return ResponseEntity.ok(response);
 	}
 }

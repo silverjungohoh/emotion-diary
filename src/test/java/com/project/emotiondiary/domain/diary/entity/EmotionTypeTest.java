@@ -2,6 +2,8 @@ package com.project.emotiondiary.domain.diary.entity;
 
 import static org.assertj.core.api.AssertionsForInterfaceTypes.*;
 
+import java.util.List;
+
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -28,5 +30,25 @@ class EmotionTypeTest {
 		EmotionType type = EmotionType.getEmotionType(score);
 		// then
 		assertThat(type).isNull();
+	}
+
+	@DisplayName("나쁜 감정 타입들만 조회한다.")
+	@Test
+	void getBadTypes() {
+		// when
+		List<EmotionType> list = EmotionType.forBad();
+		// then
+		assertThat(list).hasSize(2)
+			.containsExactlyInAnyOrder(EmotionType.WORST, EmotionType.BAD);
+	}
+
+	@DisplayName("좋은 감정 타입들만 조회한다.")
+	@Test
+	void getGoodTypes() {
+		// when
+		List<EmotionType> list = EmotionType.forGood();
+		// then
+		assertThat(list).hasSize(3)
+			.containsExactlyInAnyOrder(EmotionType.NORMAL, EmotionType.GOOD, EmotionType.BEST);
 	}
 }

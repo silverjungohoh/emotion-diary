@@ -169,3 +169,19 @@ include::{snippets}/diary-controller-test/update-diary/http-response.adoc[]
 
 * Response Fields
 include::{snippets}/diary-controller-test/update-diary/response-fields.adoc[]
+
+=== 특정 연도와 월의 일기 목록 조회
+
+==== 성공
+
+*HTTP Request*
+include::{snippets}/diary-controller-test/get-my-diary-list-by-month/http-request.adoc[]
+
+* Query Parameters
+include::{snippets}/diary-controller-test/get-my-diary-list-by-month/query-parameters.adoc[]
+
+*HTTP Response*
+include::{snippets}/diary-controller-test/get-my-diary-list-by-month/http-response.adoc[]
+
+* Response Fields
+include::{snippets}/diary-controller-test/get-my-diary-list-by-month/response-fields.adoc[]

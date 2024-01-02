@@ -1,5 +1,6 @@
 package com.project.emotiondiary.domain.diary.service;
 
+import static com.project.emotiondiary.domain.diary.entity.EmotionType.*;
 import static com.project.emotiondiary.global.error.type.DiaryErrorCode.*;
 import static org.assertj.core.api.AssertionsForInterfaceTypes.*;
 
@@ -15,6 +16,8 @@ import com.project.emotiondiary.domain.diary.entity.EmotionType;
 import com.project.emotiondiary.domain.diary.model.CreateDiaryRequest;
 import com.project.emotiondiary.domain.diary.model.CreateDiaryResponse;
 import com.project.emotiondiary.domain.diary.model.DiaryDetailResponse;
+import com.project.emotiondiary.domain.diary.model.DiaryListResponse;
+import com.project.emotiondiary.domain.diary.model.DiaryRequestParam;
 import com.project.emotiondiary.domain.diary.model.UpdateDiaryRequest;
 import com.project.emotiondiary.domain.diary.model.UpdateDiaryResponse;
 import com.project.emotiondiary.domain.diary.repository.DiaryRepository;
@@ -250,6 +253,46 @@ class DiaryServiceTest extends IntegrationTestSupport {
 		assertThat(response)
 			.extracting("id", "title", "content", "date", "emotionType")
 			.contains(1L, "수정한 제목", "수정한 내용", LocalDate.now().minusDays(1), EmotionType.NORMAL);
+	}
+
+	@DisplayName("회원의 특정 연도와 월에 해당하는 일기 목록을 조회한다.")
+	@Test
+	void getMyDiaryListByMonth() {
+		// given
+		DiaryRequestParam param = new DiaryRequestParam(2023, 12, "bad", null, false);
+		Member member = createMember("test@test.com", "hello");
+
+		LocalDate date = LocalDate.of(2023, 12, 1);
+		for (int i = 0; i < 10; i++) {
+			EmotionType type = i % 2 == 0 ? BAD : GOOD;
+			Diary diary = createDiary(date.plusDays(i), type, member);
+			diaryRepository.save(diary);
+		}
+
+		// when
+		DiaryListResponse response = diaryService.getMyDiaryListByMonth(member, param);
+
+		// then
+		assertThat(response.getDiaryList()).hasSize(5)
+			.extracting("date", "id")
+			.containsExactly(
+				tuple(LocalDate.of(2023, 12, 1), 1L),
+				tuple(LocalDate.of(2023, 12, 3), 3L),
+				tuple(LocalDate.of(2023, 12, 5), 5L),
+				tuple(LocalDate.of(2023, 12, 7), 7L),
+				tuple(LocalDate.of(2023, 12, 9), 9L)
+			);
+		assertThat(response.isHasNext()).isFalse();
+	}
+
+	private static Diary createDiary(LocalDate date, EmotionType type, Member member) {
+		return Diary.builder()
+			.title("제목")
+			.content("내용")
+			.emotionType(type)
+			.date(date)
+			.member(member)
+			.build();
 	}
 
 	private Member createMember(String email, String nickname) {

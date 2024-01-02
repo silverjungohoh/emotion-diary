@@ -1,5 +1,6 @@
 package com.project.emotiondiary.domain.diary.controller;
 
+import static com.project.emotiondiary.domain.diary.entity.EmotionType.*;
 import static com.project.emotiondiary.global.error.type.CommonErrorCode.*;
 import static com.project.emotiondiary.global.error.type.DiaryErrorCode.*;
 import static org.mockito.ArgumentMatchers.*;
@@ -10,7 +11,9 @@ import static org.springframework.restdocs.request.RequestDocumentation.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.junit.jupiter.api.DisplayName;
@@ -21,6 +24,8 @@ import com.project.emotiondiary.domain.diary.entity.EmotionType;
 import com.project.emotiondiary.domain.diary.model.CreateDiaryRequest;
 import com.project.emotiondiary.domain.diary.model.CreateDiaryResponse;
 import com.project.emotiondiary.domain.diary.model.DiaryDetailResponse;
+import com.project.emotiondiary.domain.diary.model.DiaryListResponse;
+import com.project.emotiondiary.domain.diary.model.DiaryResponse;
 import com.project.emotiondiary.domain.diary.model.UpdateDiaryRequest;
 import com.project.emotiondiary.domain.diary.model.UpdateDiaryResponse;
 import com.project.emotiondiary.global.error.exception.DiaryException;
@@ -170,7 +175,8 @@ class DiaryControllerTest extends ControllerTestSupport {
 
 		// when & then
 		mockMvc.perform(delete("/api/diaries/{diaryId}", 1L)
-				.header(AUTHORIZATION, String.format(BEARER_PREFIX, ACCESS_TOKEN)))
+				.header(AUTHORIZATION, String.format(BEARER_PREFIX, ACCESS_TOKEN))
+				.contentType(MediaType.APPLICATION_JSON))
 			.andExpect(status().isNotFound())
 			.andExpect(jsonPath("$.code").value(DIARY_NOT_FOUND.getCode()))
 			.andExpect(jsonPath("$.status").value(DIARY_NOT_FOUND.getStatus()))
@@ -198,7 +204,8 @@ class DiaryControllerTest extends ControllerTestSupport {
 
 		// when & then
 		mockMvc.perform(delete("/api/diaries/{diaryId}", 1L)
-				.header(AUTHORIZATION, String.format(BEARER_PREFIX, ACCESS_TOKEN)))
+				.header(AUTHORIZATION, String.format(BEARER_PREFIX, ACCESS_TOKEN))
+				.contentType(MediaType.APPLICATION_JSON))
 			.andExpect(status().isUnauthorized())
 			.andExpect(jsonPath("$.code").value(NO_AUTHORITY_TO_DELETE.getCode()))
 			.andExpect(jsonPath("$.status").value(NO_AUTHORITY_TO_DELETE.getStatus()))
@@ -229,7 +236,8 @@ class DiaryControllerTest extends ControllerTestSupport {
 
 		// when & then
 		mockMvc.perform(delete("/api/diaries/{diaryId}", 1L)
-				.header(AUTHORIZATION, String.format(BEARER_PREFIX, ACCESS_TOKEN)))
+				.header(AUTHORIZATION, String.format(BEARER_PREFIX, ACCESS_TOKEN))
+				.contentType(MediaType.APPLICATION_JSON))
 			.andExpect(status().isOk())
 			.andDo(
 				restDocs.document(
@@ -251,7 +259,8 @@ class DiaryControllerTest extends ControllerTestSupport {
 
 		// when & then
 		mockMvc.perform(get("/api/diaries/{diaryId}", 1L)
-				.header(AUTHORIZATION, String.format(BEARER_PREFIX, ACCESS_TOKEN)))
+				.header(AUTHORIZATION, String.format(BEARER_PREFIX, ACCESS_TOKEN))
+				.contentType(MediaType.APPLICATION_JSON))
 			.andExpect(status().isNotFound())
 			.andDo(
 				restDocs.document(
@@ -285,7 +294,8 @@ class DiaryControllerTest extends ControllerTestSupport {
 
 		// when & then
 		mockMvc.perform(get("/api/diaries/{diaryId}", 1L)
-				.header(AUTHORIZATION, String.format(BEARER_PREFIX, ACCESS_TOKEN)))
+				.header(AUTHORIZATION, String.format(BEARER_PREFIX, ACCESS_TOKEN))
+				.contentType(MediaType.APPLICATION_JSON))
 			.andExpect(status().isOk())
 			.andDo(
 				restDocs.document(
@@ -416,6 +426,66 @@ class DiaryControllerTest extends ControllerTestSupport {
 						fieldWithPath("content").description("일기 내용"),
 						fieldWithPath("date").description("날짜"),
 						fieldWithPath("emotionType").description("감정 점수에 기반한 감정 타입 (WORST/BAD/NORMAL/GOOD/BEST)")
+					)
+				)
+			);
+	}
+
+	@DisplayName("회원의 특정 연도와 월에 해당하는 일기 목록을 조회한다.")
+	@Test
+	void getMyDiaryListByMonth() throws Exception {
+		// given
+
+		LocalDate date = LocalDate.of(2023, 12, 1);
+		List<DiaryResponse> diaryList = new ArrayList<>();
+
+		for (int i = 0; i < 10; i++) {
+			EmotionType type = i % 2 == 0 ? BAD : GOOD;
+			diaryList.add(
+				DiaryResponse.builder()
+					.id(i + 1L)
+					.emotionType(type)
+					.title("제목입니다.")
+					.date(date.plusDays(i))
+					.build()
+			);
+		}
+
+		DiaryListResponse response = new DiaryListResponse(diaryList, false);
+		given(diaryService.getMyDiaryListByMonth(any(), any())).willReturn(response);
+
+		// when & then
+		mockMvc.perform(get("/api/diaries")
+				.param("year", "2023")
+				.param("month", "12")
+				.param("emotionFilter", "all")
+				.param("desc", "false")
+				.header(AUTHORIZATION, String.format(BEARER_PREFIX, ACCESS_TOKEN))
+				.contentType(MediaType.APPLICATION_JSON))
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("$.diaryList.size()").value(10))
+			.andExpect(jsonPath("$.diaryList[0].id").value(1L))
+			.andExpect(jsonPath("$.diaryList[0].title").value("제목입니다."))
+			.andExpect(jsonPath("$.diaryList[0].emotionType").value(BAD.name()))
+			.andExpect(jsonPath("$.diaryList[0].date").value(LocalDate.of(2023, 12, 1).toString()))
+			.andDo(
+				restDocs.document(
+					queryParameters(
+						parameterWithName("year").description("조회하고자 하는 연도"),
+						parameterWithName("month").description("조회하고자 하는 월"),
+						parameterWithName("emotionFilter")
+							.description("감정 타입 필터링 - all, good(normal~best), bad(worst~bad)"),
+						parameterWithName("lastDate").optional().description("이전에 조회한 일기 목록의 마지막 연도-월"),
+						parameterWithName("desc").description("내림차순 조회 여부")
+					),
+					responseFields(
+						fieldWithPath("diaryList").description("회원의 특정 연도와 월에 해당하는 일기 목록"),
+						fieldWithPath("diaryList[].id").description("일기 고유 번호"),
+						fieldWithPath("diaryList[].title").description("일기 제목"),
+						fieldWithPath("diaryList[].date").description("날짜"),
+						fieldWithPath("diaryList[].emotionType")
+							.description("감정 점수에 기반한 감정 타입 (WORST/BAD/NORMAL/GOOD/BEST)"),
+						fieldWithPath("hasNext").description("다음에 조회할 일기 목록이 존재하는지 여부")
 					)
 				)
 			);
