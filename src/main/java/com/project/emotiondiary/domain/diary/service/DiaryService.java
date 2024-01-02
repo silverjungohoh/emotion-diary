@@ -2,10 +2,17 @@ package com.project.emotiondiary.domain.diary.service;
 
 import static com.project.emotiondiary.global.error.type.DiaryErrorCode.*;
 
+import java.time.LocalDate;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -14,6 +21,9 @@ import com.project.emotiondiary.domain.diary.entity.EmotionType;
 import com.project.emotiondiary.domain.diary.model.CreateDiaryRequest;
 import com.project.emotiondiary.domain.diary.model.CreateDiaryResponse;
 import com.project.emotiondiary.domain.diary.model.DiaryDetailResponse;
+import com.project.emotiondiary.domain.diary.model.DiaryRequestParam;
+import com.project.emotiondiary.domain.diary.model.DiaryListResponse;
+import com.project.emotiondiary.domain.diary.model.DiaryResponse;
 import com.project.emotiondiary.domain.diary.model.UpdateDiaryRequest;
 import com.project.emotiondiary.domain.diary.model.UpdateDiaryResponse;
 import com.project.emotiondiary.domain.diary.repository.DiaryRepository;
@@ -94,6 +104,41 @@ public class DiaryService {
 		diary.update(request.getTitle(), request.getContent(), newType, request.getDate());
 
 		return UpdateDiaryResponse.from(diary);
+	}
+
+	@Transactional(readOnly = true)
+	public DiaryListResponse getMyDiaryListByMonth(Member member, DiaryRequestParam param) {
+
+		Integer year = param.getYear();
+		Integer month = param.getMonth();
+		LocalDate lastDate = param.getLastDate();
+
+		List<EmotionType> emotionTypes = resolveEmotionTypes(param.getEmotionFilter());
+
+		Pageable pageable = PageRequest.of(0, 10, sortByDate(param.isDesc()));
+		System.out.println(param.isDesc());
+
+		Slice<Diary> diarySlice = diaryRepository.findDiaryList(year, month, member.getId(), emotionTypes, lastDate, pageable);
+
+		return new DiaryListResponse(
+			diarySlice.getContent()
+				.stream().map(DiaryResponse::from)
+				.collect(Collectors.toList()),
+			diarySlice.hasNext()
+		);
+	}
+
+	private List<EmotionType> resolveEmotionTypes(String emotionFilter) {
+		return switch (emotionFilter) {
+			case "all" -> EmotionType.forAll();
+			case "good" -> EmotionType.forGood();
+			case "bad" -> EmotionType.forBad();
+			default -> throw new IllegalArgumentException("Invalid emotion type: " + emotionFilter);
+		};
+	}
+
+	private static Sort sortByDate(boolean desc) {
+		return Sort.by(desc ? Sort.Direction.DESC : Sort.Direction.ASC, "date");
 	}
 
 	private static Map<String, String> getMessage(String message) {
