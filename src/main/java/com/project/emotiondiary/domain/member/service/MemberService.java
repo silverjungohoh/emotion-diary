@@ -20,7 +20,9 @@ import com.project.emotiondiary.domain.member.model.SignUpRequest;
 import com.project.emotiondiary.domain.member.model.SignUpResponse;
 import com.project.emotiondiary.domain.member.repository.MemberRepository;
 import com.project.emotiondiary.global.auth.jwt.JwtProvider;
+import com.project.emotiondiary.global.auth.model.InvalidatedAccessToken;
 import com.project.emotiondiary.global.auth.model.RefreshToken;
+import com.project.emotiondiary.global.auth.repository.InvalidatedAccessTokenRepository;
 import com.project.emotiondiary.global.auth.repository.RefreshTokenRepository;
 import com.project.emotiondiary.global.error.exception.AuthException;
 import com.project.emotiondiary.global.error.exception.MemberException;
@@ -33,6 +35,7 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 public class MemberService {
 
+	private static final String BEARER_PREFIX = "Bearer ";
 	@Value("${spring.jwt.valid.refreshToken}")
 	private Long refreshTokenValid;
 
@@ -40,6 +43,7 @@ public class MemberService {
 	private final PasswordEncoder passwordEncoder;
 	private final JwtProvider jwtProvider;
 	private final RefreshTokenRepository refreshTokenRepository;
+	private final InvalidatedAccessTokenRepository invalidatedAccessTokenRepository;
 
 	@Transactional(readOnly = true)
 	public Map<String, String> checkEmailDuplicated(String email) {
@@ -123,6 +127,24 @@ public class MemberService {
 		String accessToken = jwtProvider.generateAccessToken(email, member.getRole());
 
 		return new ReissueResponse(accessToken);
+	}
+
+	@Transactional
+	public Map<String, String> logout(Member member, String bearerToken) {
+		String accessToken = bearerToken.substring(BEARER_PREFIX.length());
+		// access token 무효화 위해
+		InvalidatedAccessToken invalidatedToken = InvalidatedAccessToken.builder()
+			.token(accessToken)
+			.email(member.getEmail())
+			.expiration(jwtProvider.calculateRemainingMillis(accessToken))
+			.build();
+
+		invalidatedAccessTokenRepository.save(invalidatedToken);
+
+		refreshTokenRepository.findByEmail(member.getEmail())
+			.ifPresent(refreshTokenRepository::delete);
+
+		return getMessage("로그아웃 성공");
 	}
 
 	private static Map<String, String> getMessage(String message) {
