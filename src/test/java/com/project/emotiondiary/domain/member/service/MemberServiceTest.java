@@ -22,7 +22,9 @@ import com.project.emotiondiary.domain.member.model.SignUpRequest;
 import com.project.emotiondiary.domain.member.model.SignUpResponse;
 import com.project.emotiondiary.domain.member.repository.MemberRepository;
 import com.project.emotiondiary.global.auth.jwt.JwtProvider;
+import com.project.emotiondiary.global.auth.model.InvalidatedAccessToken;
 import com.project.emotiondiary.global.auth.model.RefreshToken;
+import com.project.emotiondiary.global.auth.repository.InvalidatedAccessTokenRepository;
 import com.project.emotiondiary.global.auth.repository.RefreshTokenRepository;
 import com.project.emotiondiary.global.error.exception.MemberException;
 import com.project.emotiondiary.helper.IntegrationTestSupport;
@@ -44,6 +46,8 @@ class MemberServiceTest extends IntegrationTestSupport {
 	@Autowired
 	private JwtProvider jwtProvider;
 
+	@Autowired
+	private InvalidatedAccessTokenRepository invalidatedAccessTokenRepository;
 
 	@DisplayName("입력 받은 이메일이 이미 존재하는 경우 예외를 던진다.")
 	@Test
@@ -285,5 +289,44 @@ class MemberServiceTest extends IntegrationTestSupport {
 		String roleInToken = jwtProvider.extractRole(response.getAccessToken());
 		assertThat(emailInToken).isEqualTo("test@test.com");
 		assertThat(roleInToken).isEqualTo(Role.ROLE_USER.name());
+	}
+
+	@DisplayName("회원 로그아웃을 진행한다.")
+	@Test
+	void logout() {
+		// given
+		Member member = Member.builder()
+			.email("test@test.com")
+			.role(Role.ROLE_USER)
+			.build();
+
+		memberRepository.save(member);
+
+		String accessToken = jwtProvider.generateAccessToken("test@test.com", Role.ROLE_USER);
+		String refreshToken = jwtProvider.generateRefreshToken("test@test.com");
+
+		RefreshToken token = RefreshToken.builder()
+			.id(refreshToken)
+			.email("test@test.com")
+			.expiration(1800000L)
+			.build();
+
+		refreshTokenRepository.save(token);
+
+		// when
+		Map<String, String> response = memberService.logout(member, String.format("Bearer %s", accessToken));
+
+		// then
+		Optional<RefreshToken> optional1 = refreshTokenRepository.findById(refreshToken);
+		assertThat(optional1.isPresent()).isFalse();
+
+		Optional<InvalidatedAccessToken> optional2 = invalidatedAccessTokenRepository.findById(accessToken);
+		assertThat(optional2.isPresent()).isTrue();
+		assertThat(optional2.get())
+			.extracting("email", "token")
+			.contains("test@test.com", accessToken);
+		assertThat(response)
+			.extracting("message")
+			.isEqualTo("로그아웃 성공");
 	}
 }
