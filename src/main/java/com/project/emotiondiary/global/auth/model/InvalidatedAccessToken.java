@@ -5,29 +5,27 @@ import java.util.concurrent.TimeUnit;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.redis.core.RedisHash;
 import org.springframework.data.redis.core.TimeToLive;
-import org.springframework.data.redis.core.index.Indexed;
 
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Getter
-@RedisHash("refresh")
+@RedisHash("invalidated")
 @NoArgsConstructor
-public class RefreshToken {
+public class InvalidatedAccessToken {
 
 	@Id
-	private String id;
+	private String token;
 
-	@Indexed
 	private String email;
 
 	@TimeToLive(unit = TimeUnit.MILLISECONDS)
 	private Long expiration;
 
 	@Builder
-	private RefreshToken(String id, String email, Long expiration) {
-		this.id = id;
+	private InvalidatedAccessToken(String token, String email, Long expiration) {
+		this.token = token;
 		this.email = email;
 		this.expiration = expiration;
 	}

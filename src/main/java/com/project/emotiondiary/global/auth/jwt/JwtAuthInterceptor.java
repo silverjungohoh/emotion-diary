@@ -15,6 +15,7 @@ import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.HandlerInterceptor;
 
 import com.project.emotiondiary.global.auth.annotation.AuthRequired;
+import com.project.emotiondiary.global.auth.repository.InvalidatedAccessTokenRepository;
 import com.project.emotiondiary.global.auth.service.CustomUserDetailsService;
 import com.project.emotiondiary.global.error.exception.AuthException;
 
@@ -32,7 +33,7 @@ public class JwtAuthInterceptor implements HandlerInterceptor {
 
 	private final JwtProvider jwtProvider;
 	private final CustomUserDetailsService userDetailsService;
-
+	private final InvalidatedAccessTokenRepository invalidatedAccessTokenRepository;
 
 	// 요청이 controller 도달하기 전에 실행
 	@Override
@@ -47,6 +48,12 @@ public class JwtAuthInterceptor implements HandlerInterceptor {
 				try {
 					if (!Objects.isNull(token) && jwtProvider.validateToken(token)) {
 						log.info("access token is valid");
+						invalidatedAccessTokenRepository.findById(token).ifPresent(
+							invalidated -> {
+								log.info("access token is invalidated by logout");
+								throw new AuthException(AUTHENTICATION_FAILED);
+							}
+						);
 						// 토큰에서 사용자 이메일 추출
 						String email = jwtProvider.extractEmail(token);
 

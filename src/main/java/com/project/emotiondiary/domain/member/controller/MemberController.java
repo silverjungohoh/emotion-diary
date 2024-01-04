@@ -12,12 +12,15 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.project.emotiondiary.domain.member.entity.Member;
 import com.project.emotiondiary.domain.member.model.LoginRequest;
 import com.project.emotiondiary.domain.member.model.LoginResponse;
 import com.project.emotiondiary.domain.member.model.ReissueResponse;
 import com.project.emotiondiary.domain.member.model.SignUpRequest;
 import com.project.emotiondiary.domain.member.model.SignUpResponse;
 import com.project.emotiondiary.domain.member.service.MemberService;
+import com.project.emotiondiary.global.auth.annotation.AuthRequired;
+import com.project.emotiondiary.global.auth.annotation.AuthUser;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -62,6 +65,15 @@ public class MemberController {
 	public ResponseEntity<ReissueResponse> reissueToken(@RequestHeader(name = "REFRESH") String refreshToken) {
 
 		ReissueResponse response = memberService.reissueToken(refreshToken);
+		return ResponseEntity.ok(response);
+	}
+
+	@AuthRequired
+	@PostMapping("/logout")
+	public ResponseEntity<Map<String, String>> logout(@RequestHeader(name = "Authorization") String bearerToken,
+		@AuthUser Member member) {
+
+		Map<String, String> response = memberService.logout(member, bearerToken);
 		return ResponseEntity.ok(response);
 	}
 }

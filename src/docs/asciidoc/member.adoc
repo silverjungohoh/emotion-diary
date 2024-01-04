@@ -198,3 +198,16 @@ include::{snippets}/member-controller-test/reissue/http-response.adoc[]
 
 * Response Fields
 include::{snippets}/member-controller-test/reissue/response-fields.adoc[]
+
+=== 회원 로그아웃
+
+==== 성공
+
+*HTTP Request*
+include::{snippets}/member-controller-test/logout/http-request.adoc[]
+
+*HTTP Response*
+include::{snippets}/member-controller-test/logout/http-response.adoc[]
+
+* Response Fields
+include::{snippets}/member-controller-test/logout/response-fields.adoc[]

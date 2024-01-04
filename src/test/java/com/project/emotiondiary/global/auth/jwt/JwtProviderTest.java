@@ -145,6 +145,19 @@ class JwtProviderTest extends IntegrationTestSupport {
 		assertThat(role).isEqualTo(ROLE_USER.name());
 	}
 
+	@DisplayName("토큰의 남은 유효 시간을 계산한다.")
+	@Test
+	void calculateRemainingMillis() {
+		// given
+		String token = createToken(1800000L);
+
+		// when
+		Long remaining = jwtProvider.calculateRemainingMillis(token);
+
+		// then
+		assertThat(remaining).isPositive();
+	}
+
 	private String createToken(Long tokenValid) {
 		Date now = new Date();
 		Map<String, Object> claims = new HashMap<>();

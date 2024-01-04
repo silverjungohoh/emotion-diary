@@ -113,6 +113,18 @@ public class JwtProvider {
 			.get("role", String.class);
 	}
 
+	// token 남은 유효 시간을 계산
+	public Long calculateRemainingMillis(String token) {
+		Date expiredAt = Jwts.parserBuilder()
+			.setSigningKey(key)
+			.build()
+			.parseClaimsJws(token)
+			.getBody()
+			.getExpiration();
+
+		return expiredAt.getTime() - new Date().getTime();
+	}
+
 	private static Map<String, Object> createClaims(String email, String type) {
 		Map<String, Object> claims = new HashMap<>();
 		claims.put(TYPE_CLAIM_KEY, type);

@@ -402,7 +402,7 @@ class MemberControllerTest extends ControllerTestSupport {
 			);
 	}
 
-	@DisplayName("refresh token에서 추출한 이메일을 가진 회원이 존재하지 않으면 예외를 던진다." )
+	@DisplayName("refresh token에서 추출한 이메일을 가진 회원이 존재하지 않으면 예외를 던진다.")
 	@Test
 	void reissueWithNotFoundMember() throws Exception {
 		// given
@@ -452,6 +452,30 @@ class MemberControllerTest extends ControllerTestSupport {
 					),
 					responseFields(
 						fieldWithPath("accessToken").description("회원의 새로운 access token")
+					)
+				)
+			);
+	}
+
+	@DisplayName("회원 로그아웃을 진행한다.")
+	@Test
+	void logout() throws Exception {
+		// given
+		Map<String, String> response = new HashMap<>();
+		response.put("message", "로그아웃 성공");
+
+		given(memberService.logout(any(), anyString())).willReturn(response);
+
+		// when & then
+		mockMvc.perform(post("/api/members/logout")
+				.header(AUTHORIZATION, String.format(BEARER_PREFIX, ACCESS_TOKEN))
+				.contentType(MediaType.APPLICATION_JSON))
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("$.message").value(response.get("message")))
+			.andDo(
+				restDocs.document(
+					responseFields(
+						fieldWithPath("message").description("응답 메세지")
 					)
 				)
 			);
