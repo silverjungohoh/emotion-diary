@@ -17,7 +17,7 @@ import com.project.emotiondiary.domain.diary.controller.DiaryController;
 import com.project.emotiondiary.domain.diary.service.DiaryService;
 import com.project.emotiondiary.domain.member.controller.MemberController;
 import com.project.emotiondiary.domain.member.service.MemberService;
-import com.project.emotiondiary.global.auth.jwt.JwtAuthInterceptor;
+import com.project.emotiondiary.global.auth.interceptor.JwtAuthInterceptor;
 import com.project.emotiondiary.global.config.SecurityConfig;
 
 @WebMvcTest(

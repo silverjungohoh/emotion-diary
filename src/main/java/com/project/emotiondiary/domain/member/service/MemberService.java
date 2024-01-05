@@ -19,7 +19,7 @@ import com.project.emotiondiary.domain.member.model.ReissueResponse;
 import com.project.emotiondiary.domain.member.model.SignUpRequest;
 import com.project.emotiondiary.domain.member.model.SignUpResponse;
 import com.project.emotiondiary.domain.member.repository.MemberRepository;
-import com.project.emotiondiary.global.auth.jwt.JwtProvider;
+import com.project.emotiondiary.global.auth.service.JwtProvider;
 import com.project.emotiondiary.global.auth.model.InvalidatedAccessToken;
 import com.project.emotiondiary.global.auth.model.RefreshToken;
 import com.project.emotiondiary.global.auth.repository.InvalidatedAccessTokenRepository;

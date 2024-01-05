@@ -1,4 +1,4 @@
-package com.project.emotiondiary.global.auth.jwt;
+package com.project.emotiondiary.global.auth.service;
 
 import static com.project.emotiondiary.global.error.type.AuthErrorCode.*;
 
