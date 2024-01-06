@@ -1,4 +1,4 @@
-package com.project.emotiondiary.global.auth.jwt;
+package com.project.emotiondiary.global.auth.interceptor;
 
 import static com.project.emotiondiary.global.error.type.AuthErrorCode.*;
 
@@ -17,6 +17,7 @@ import org.springframework.web.servlet.HandlerInterceptor;
 import com.project.emotiondiary.global.auth.annotation.AuthRequired;
 import com.project.emotiondiary.global.auth.repository.InvalidatedAccessTokenRepository;
 import com.project.emotiondiary.global.auth.service.CustomUserDetailsService;
+import com.project.emotiondiary.global.auth.service.JwtProvider;
 import com.project.emotiondiary.global.error.exception.AuthException;
 
 import jakarta.servlet.http.HttpServletRequest;
