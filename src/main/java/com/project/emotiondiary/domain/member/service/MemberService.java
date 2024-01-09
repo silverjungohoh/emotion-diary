@@ -11,6 +11,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.project.emotiondiary.domain.diary.repository.DiaryRepository;
 import com.project.emotiondiary.domain.member.entity.Member;
 import com.project.emotiondiary.domain.member.entity.Role;
 import com.project.emotiondiary.domain.member.model.LoginRequest;
@@ -18,12 +19,13 @@ import com.project.emotiondiary.domain.member.model.LoginResponse;
 import com.project.emotiondiary.domain.member.model.ReissueResponse;
 import com.project.emotiondiary.domain.member.model.SignUpRequest;
 import com.project.emotiondiary.domain.member.model.SignUpResponse;
+import com.project.emotiondiary.domain.member.model.WithDrawRequest;
 import com.project.emotiondiary.domain.member.repository.MemberRepository;
-import com.project.emotiondiary.global.auth.service.JwtProvider;
 import com.project.emotiondiary.global.auth.model.InvalidatedAccessToken;
 import com.project.emotiondiary.global.auth.model.RefreshToken;
 import com.project.emotiondiary.global.auth.repository.InvalidatedAccessTokenRepository;
 import com.project.emotiondiary.global.auth.repository.RefreshTokenRepository;
+import com.project.emotiondiary.global.auth.service.JwtProvider;
 import com.project.emotiondiary.global.error.exception.AuthException;
 import com.project.emotiondiary.global.error.exception.MemberException;
 
@@ -44,6 +46,7 @@ public class MemberService {
 	private final JwtProvider jwtProvider;
 	private final RefreshTokenRepository refreshTokenRepository;
 	private final InvalidatedAccessTokenRepository invalidatedAccessTokenRepository;
+	private final DiaryRepository diaryRepository;
 
 	@Transactional(readOnly = true)
 	public Map<String, String> checkEmailDuplicated(String email) {
@@ -145,6 +148,25 @@ public class MemberService {
 			.ifPresent(refreshTokenRepository::delete);
 
 		return getMessage("로그아웃 성공");
+	}
+
+	@Transactional
+	public Map<String, String> withdraw(Member member, WithDrawRequest request) {
+
+		// 비밀번호 확인
+		if(!passwordEncoder.matches(request.getPassword(), member.getPassword())) {
+			throw new MemberException(WITHDRAW_FAILED);
+		}
+
+		// 회원이 작성한 일기 일괄적으로 삭제
+		diaryRepository.deleteAllByMemberId(member.getId());
+
+		// 회원이 발급 받은 refresh token 삭제
+		refreshTokenRepository.findByEmail(member.getEmail())
+			.ifPresent(refreshTokenRepository::delete);
+
+		memberRepository.deleteById(member.getId());
+		return getMessage("회원 탈퇴가 성공적으로 처리되었습니다.");
 	}
 
 	private static Map<String, String> getMessage(String message) {

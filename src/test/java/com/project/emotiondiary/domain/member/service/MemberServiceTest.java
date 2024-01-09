@@ -20,12 +20,13 @@ import com.project.emotiondiary.domain.member.model.LoginResponse;
 import com.project.emotiondiary.domain.member.model.ReissueResponse;
 import com.project.emotiondiary.domain.member.model.SignUpRequest;
 import com.project.emotiondiary.domain.member.model.SignUpResponse;
+import com.project.emotiondiary.domain.member.model.WithDrawRequest;
 import com.project.emotiondiary.domain.member.repository.MemberRepository;
-import com.project.emotiondiary.global.auth.service.JwtProvider;
 import com.project.emotiondiary.global.auth.model.InvalidatedAccessToken;
 import com.project.emotiondiary.global.auth.model.RefreshToken;
 import com.project.emotiondiary.global.auth.repository.InvalidatedAccessTokenRepository;
 import com.project.emotiondiary.global.auth.repository.RefreshTokenRepository;
+import com.project.emotiondiary.global.auth.service.JwtProvider;
 import com.project.emotiondiary.global.error.exception.MemberException;
 import com.project.emotiondiary.helper.IntegrationTestSupport;
 
@@ -167,10 +168,7 @@ class MemberServiceTest extends IntegrationTestSupport {
 	@Test
 	void loginWithWrongPassword() {
 		// given
-		Member member = Member.builder()
-			.email("test@test.com")
-			.password(passwordEncoder.encode("zxc123"))
-			.build();
+		Member member = createMemberWithEncodedPassword();
 		memberRepository.save(member);
 
 		LoginRequest request = LoginRequest.builder()
@@ -187,10 +185,7 @@ class MemberServiceTest extends IntegrationTestSupport {
 	@Test
 	void login() {
 		// given
-		Member member = Member.builder()
-			.email("test@test.com")
-			.password(passwordEncoder.encode("zxc123"))
-			.build();
+		Member member = createMemberWithEncodedPassword();
 		memberRepository.save(member);
 
 		LoginRequest request = LoginRequest.builder()
@@ -262,10 +257,7 @@ class MemberServiceTest extends IntegrationTestSupport {
 	@Test
 	void reissue() {
 		// given
-		Member member = Member.builder()
-			.email("test@test.com")
-			.role(Role.ROLE_USER)
-			.build();
+		Member member = createMember();
 
 		memberRepository.save(member);
 
@@ -295,10 +287,7 @@ class MemberServiceTest extends IntegrationTestSupport {
 	@Test
 	void logout() {
 		// given
-		Member member = Member.builder()
-			.email("test@test.com")
-			.role(Role.ROLE_USER)
-			.build();
+		Member member = createMember();
 
 		memberRepository.save(member);
 
@@ -328,5 +317,53 @@ class MemberServiceTest extends IntegrationTestSupport {
 		assertThat(response)
 			.extracting("message")
 			.isEqualTo("로그아웃 성공");
+	}
+
+	@DisplayName("입력 받은 비밀번호가 올바르지 않는 경우 예외를 던진다.")
+	@Test
+	void withdrawWithWrongPassword() {
+		// given
+		Member member = createMemberWithEncodedPassword();
+		memberRepository.save(member);
+
+		WithDrawRequest request = new WithDrawRequest("qwe123");
+
+		// when & then
+		assertThatThrownBy(() -> memberService.withdraw(member, request))
+			.isInstanceOf(MemberException.class)
+			.hasMessage(WITHDRAW_FAILED.getMessage());
+	}
+
+	@DisplayName("회원 탈퇴를 진행한다.")
+	@Test
+	void withdraw() {
+		// given
+		Member member = createMemberWithEncodedPassword();
+		memberRepository.save(member);
+
+		WithDrawRequest request = new WithDrawRequest("zxc123");
+
+		// when
+		Map<String, String> response = memberService.withdraw(member, request);
+
+		// then
+		assertThat(response)
+			.extracting("message")
+			.isEqualTo("회원 탈퇴가 성공적으로 처리되었습니다.");
+
+	}
+
+	private static Member createMember() {
+		return Member.builder()
+			.email("test@test.com")
+			.role(Role.ROLE_USER)
+			.build();
+	}
+
+	private Member createMemberWithEncodedPassword() {
+		return Member.builder()
+			.email("test@test.com")
+			.password(passwordEncoder.encode("zxc123"))
+			.build();
 	}
 }
