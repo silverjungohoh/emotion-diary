@@ -4,6 +4,7 @@ import java.util.Map;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -18,6 +19,7 @@ import com.project.emotiondiary.domain.member.model.LoginResponse;
 import com.project.emotiondiary.domain.member.model.ReissueResponse;
 import com.project.emotiondiary.domain.member.model.SignUpRequest;
 import com.project.emotiondiary.domain.member.model.SignUpResponse;
+import com.project.emotiondiary.domain.member.model.WithDrawRequest;
 import com.project.emotiondiary.domain.member.service.MemberService;
 import com.project.emotiondiary.global.auth.annotation.AuthRequired;
 import com.project.emotiondiary.global.auth.annotation.AuthUser;
@@ -74,6 +76,14 @@ public class MemberController {
 		@AuthUser Member member) {
 
 		Map<String, String> response = memberService.logout(member, bearerToken);
+		return ResponseEntity.ok(response);
+	}
+
+	@AuthRequired
+	@DeleteMapping("/info")
+	public ResponseEntity<Map<String, String>> withdraw(@AuthUser Member member, @RequestBody WithDrawRequest request) {
+
+		Map<String, String> response = memberService.withdraw(member, request);
 		return ResponseEntity.ok(response);
 	}
 }
