@@ -22,6 +22,7 @@ import com.project.emotiondiary.domain.member.model.LoginResponse;
 import com.project.emotiondiary.domain.member.model.ReissueResponse;
 import com.project.emotiondiary.domain.member.model.SignUpRequest;
 import com.project.emotiondiary.domain.member.model.SignUpResponse;
+import com.project.emotiondiary.domain.member.model.WithDrawRequest;
 import com.project.emotiondiary.global.error.exception.MemberException;
 import com.project.emotiondiary.helper.ControllerTestSupport;
 
@@ -474,6 +475,67 @@ class MemberControllerTest extends ControllerTestSupport {
 			.andExpect(jsonPath("$.message").value(response.get("message")))
 			.andDo(
 				restDocs.document(
+					responseFields(
+						fieldWithPath("message").description("응답 메세지")
+					)
+				)
+			);
+	}
+
+	@DisplayName("입력 받은 비밀번호가 올바르지 않는 경우 예외를 던진다.")
+	@Test
+	void withdrawWithWrongPassword() throws Exception {
+		// given
+		WithDrawRequest request = new WithDrawRequest("zxc1234");
+		given(memberService.withdraw(any(), any())).willThrow(new MemberException(WITHDRAW_FAILED));
+
+		// when & then
+		mockMvc.perform(delete("/api/members/info")
+				.header(AUTHORIZATION, String.format(BEARER_PREFIX, ACCESS_TOKEN))
+				.contentType(MediaType.APPLICATION_JSON)
+				.content(objectMapper.writeValueAsString(request)))
+			.andExpect(status().isUnauthorized())
+			.andExpect(jsonPath("$.code").value(WITHDRAW_FAILED.getCode()))
+			.andExpect(jsonPath("$.status").value(WITHDRAW_FAILED.getStatus()))
+			.andExpect(jsonPath("$.message").value(WITHDRAW_FAILED.getMessage()))
+			.andDo(
+				restDocs.document(
+					requestFields(
+						fieldWithPath("password").description("회원 비밀번호")
+					),
+					responseFields(
+						fieldWithPath("status").description("HTTP 상태 코드"),
+						fieldWithPath("message").description("에러 메세지"),
+						fieldWithPath("code").description("에러 코드"),
+						fieldWithPath("fieldErrors").description("유효성 검증 실패에 대한 정보")
+					)
+				)
+			);
+	}
+
+	@DisplayName("회원 탈퇴를 진행한다.")
+	@Test
+	void withdraw() throws Exception {
+		// given
+		WithDrawRequest request = new WithDrawRequest("zxc1234");
+
+		Map<String, String> response = new HashMap<>();
+		response.put("message", "회원 탈퇴가 성공적으로 처리되었습니다.");
+
+		given(memberService.withdraw(any(), any())).willReturn(response);
+
+		// when & then
+		mockMvc.perform(delete("/api/members/info")
+				.header(AUTHORIZATION, String.format(BEARER_PREFIX, ACCESS_TOKEN))
+				.contentType(MediaType.APPLICATION_JSON)
+				.content(objectMapper.writeValueAsString(request)))
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("$.message").value(response.get("message")))
+			.andDo(
+				restDocs.document(
+					requestFields(
+						fieldWithPath("password").description("회원 비밀번호")
+					),
 					responseFields(
 						fieldWithPath("message").description("응답 메세지")
 					)

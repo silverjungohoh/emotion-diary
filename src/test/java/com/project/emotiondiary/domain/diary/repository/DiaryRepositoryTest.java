@@ -13,6 +13,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.Sort;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.project.emotiondiary.domain.diary.entity.Diary;
 import com.project.emotiondiary.domain.diary.entity.EmotionType;
@@ -58,6 +59,30 @@ class DiaryRepositoryTest extends IntegrationTestSupport {
 			.extracting("date", "emotionType", "id")
 			.contains(LocalDate.of(2023, 12, 2), GOOD, 2L);
 		assertThat(diarySlice.hasNext()).isFalse();
+	}
+
+	@DisplayName("특정 회원이 작성한 일기들을 일괄적으로 삭제한다.")
+	@Test
+	@Transactional
+	void deleteAllByMemberId() {
+		// given
+		Member member = createMember();
+		memberRepository.save(member);
+
+		LocalDate date = LocalDate.of(2024, 1, 1);
+
+		for(int i = 0; i < 10; i++) {
+			EmotionType type = i % 2 == 0 ? BAD : GOOD;
+			Diary diary = createDiary(date.plusDays(i), type, member);
+			diaryRepository.save(diary);
+		}
+
+		// when
+		diaryRepository.deleteAllByMemberId(1L);
+
+		// then
+		List<Diary> diaryList = diaryRepository.findAll();
+		assertThat(diaryList).hasSize(0);
 	}
 
 	private static Diary createDiary(LocalDate date, EmotionType type, Member member) {
