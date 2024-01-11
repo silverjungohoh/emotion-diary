@@ -241,3 +241,48 @@ include::{snippets}/member-controller-test/withdraw/http-response.adoc[]
 
 * Response Fields
 include::{snippets}/member-controller-test/withdraw/response-fields.adoc[]
+
+=== 비밀번호 변경
+
+==== 실패 - 잘못된 기존 비밀번호
+
+*HTTP Request*
+include::{snippets}/member-controller-test/update-password-with-wrong-password/http-request.adoc[]
+
+* Request Fields
+include::{snippets}/member-controller-test/update-password-with-wrong-password/request-fields.adoc[]
+
+*HTTP Response*
+include::{snippets}/member-controller-test/update-password-with-wrong-password/http-response.adoc[]
+
+* Response Fields
+include::{snippets}/member-controller-test/update-password-with-wrong-password/response-fields.adoc[]
+
+
+==== 실패 - 새로운 두 비밀번호 불일치
+
+*HTTP Request*
+include::{snippets}/member-controller-test/update-password-with-mismatch-password-check/http-request.adoc[]
+
+* Request Fields
+include::{snippets}/member-controller-test/update-password-with-mismatch-password-check/request-fields.adoc[]
+
+*HTTP Response*
+include::{snippets}/member-controller-test/update-password-with-mismatch-password-check/http-response.adoc[]
+
+* Response Fields
+include::{snippets}/member-controller-test/update-password-with-mismatch-password-check/response-fields.adoc[]
+
+==== 성공
+
+*HTTP Request*
+include::{snippets}/member-controller-test/update-password/http-request.adoc[]
+
+* Request Fields
+include::{snippets}/member-controller-test/update-password/request-fields.adoc[]
+
+*HTTP Response*
+include::{snippets}/member-controller-test/update-password/http-response.adoc[]
+
+* Response Fields
+include::{snippets}/member-controller-test/update-password/response-fields.adoc[]

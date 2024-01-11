@@ -6,6 +6,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
@@ -19,6 +20,7 @@ import com.project.emotiondiary.domain.member.model.LoginResponse;
 import com.project.emotiondiary.domain.member.model.ReissueResponse;
 import com.project.emotiondiary.domain.member.model.SignUpRequest;
 import com.project.emotiondiary.domain.member.model.SignUpResponse;
+import com.project.emotiondiary.domain.member.model.UpdatePasswordRequest;
 import com.project.emotiondiary.domain.member.model.WithDrawRequest;
 import com.project.emotiondiary.domain.member.service.MemberService;
 import com.project.emotiondiary.global.auth.annotation.AuthRequired;
@@ -84,6 +86,15 @@ public class MemberController {
 	public ResponseEntity<Map<String, String>> withdraw(@AuthUser Member member, @RequestBody WithDrawRequest request) {
 
 		Map<String, String> response = memberService.withdraw(member, request);
+		return ResponseEntity.ok(response);
+	}
+
+	@AuthRequired
+	@PatchMapping("/info")
+	public ResponseEntity<Map<String, String>> updatePassword(@AuthUser Member member,
+		@Valid @RequestBody UpdatePasswordRequest request) {
+
+		Map<String, String> response = memberService.updatePassword(member, request);
 		return ResponseEntity.ok(response);
 	}
 }

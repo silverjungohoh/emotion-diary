@@ -15,7 +15,8 @@ public enum MemberErrorCode implements ErrorCode {
 	MEMBER_NOT_FOUND(NOT_FOUND, "E104", "존재하지 않는 회원입니다."),
 	FAIL_TO_LOGIN(UNAUTHORIZED, "E105", "회원 로그인에 실패하였습니다."),
 	REISSUE_TOKEN_FAILED(UNAUTHORIZED, "E106", "토큰 재발급에 실패하였습니다."),
-	WITHDRAW_FAILED(UNAUTHORIZED, "E107", "회원 탈퇴에 실패하였습니다.");
+	WITHDRAW_FAILED(BAD_REQUEST, "E107", "회원 탈퇴에 실패하였습니다."),
+	UPDATE_PASSWORD_FAILED(BAD_REQUEST, "E108", "비밀번호 변경에 실패하였습니다.");
 
 	private final HttpStatus status;
 	private final String code;

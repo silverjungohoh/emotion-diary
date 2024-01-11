@@ -22,6 +22,7 @@ import com.project.emotiondiary.domain.member.model.LoginResponse;
 import com.project.emotiondiary.domain.member.model.ReissueResponse;
 import com.project.emotiondiary.domain.member.model.SignUpRequest;
 import com.project.emotiondiary.domain.member.model.SignUpResponse;
+import com.project.emotiondiary.domain.member.model.UpdatePasswordRequest;
 import com.project.emotiondiary.domain.member.model.WithDrawRequest;
 import com.project.emotiondiary.global.error.exception.MemberException;
 import com.project.emotiondiary.helper.ControllerTestSupport;
@@ -494,7 +495,7 @@ class MemberControllerTest extends ControllerTestSupport {
 				.header(AUTHORIZATION, String.format(BEARER_PREFIX, ACCESS_TOKEN))
 				.contentType(MediaType.APPLICATION_JSON)
 				.content(objectMapper.writeValueAsString(request)))
-			.andExpect(status().isUnauthorized())
+			.andExpect(status().isBadRequest())
 			.andExpect(jsonPath("$.code").value(WITHDRAW_FAILED.getCode()))
 			.andExpect(jsonPath("$.status").value(WITHDRAW_FAILED.getStatus()))
 			.andExpect(jsonPath("$.message").value(WITHDRAW_FAILED.getMessage()))
@@ -535,6 +536,118 @@ class MemberControllerTest extends ControllerTestSupport {
 				restDocs.document(
 					requestFields(
 						fieldWithPath("password").description("회원 비밀번호")
+					),
+					responseFields(
+						fieldWithPath("message").description("응답 메세지")
+					)
+				)
+			);
+	}
+
+	@DisplayName("회원의 기존 비밀번호가 틀리면 예외를 던진다.")
+	@Test
+	void updatePasswordWithWrongPassword() throws Exception {
+		// given
+		UpdatePasswordRequest request = UpdatePasswordRequest.builder()
+			.password("zxc123")
+			.newPassword("asd123")
+			.newPasswordCheck("asd123")
+			.build();
+
+			given(memberService.updatePassword(any(), any())).willThrow(new MemberException(UPDATE_PASSWORD_FAILED));
+
+		// when & then
+		mockMvc.perform(patch("/api/members/info")
+				.header(AUTHORIZATION, String.format(BEARER_PREFIX, ACCESS_TOKEN))
+				.contentType(MediaType.APPLICATION_JSON)
+				.content(objectMapper.writeValueAsString(request)))
+			.andExpect(status().isBadRequest())
+			.andExpect(jsonPath("$.code").value(UPDATE_PASSWORD_FAILED.getCode()))
+			.andExpect(jsonPath("$.status").value(UPDATE_PASSWORD_FAILED.getStatus()))
+			.andExpect(jsonPath("$.message").value(UPDATE_PASSWORD_FAILED.getMessage()))
+			.andDo(
+				restDocs.document(
+					requestFields(
+						fieldWithPath("password").description("회원의 기존 비밀번호"),
+						fieldWithPath("newPassword").description("변경할 새로운 비밀번호"),
+						fieldWithPath("newPasswordCheck").description("변경할 새로운 비밀번호 확인")
+					),
+					responseFields(
+						fieldWithPath("status").description("HTTP 상태 코드"),
+						fieldWithPath("message").description("에러 메세지"),
+						fieldWithPath("code").description("에러 코드"),
+						fieldWithPath("fieldErrors").description("유효성 검증 실패에 대한 정보")
+					)
+				)
+			);
+	}
+
+	@DisplayName("새로운 비밀번호와 비밀번호 확인이 일치하지 않으면 예외를 던진다.")
+	@Test
+	void updatePasswordWithMismatchPasswordCheck() throws Exception {
+		// given
+		UpdatePasswordRequest request = UpdatePasswordRequest.builder()
+			.password("zxc123")
+			.newPassword("asd123")
+			.newPasswordCheck("123asd")
+			.build();
+
+		given(memberService.updatePassword(any(), any())).willThrow(new MemberException(MISMATCH_PASSWORD_CHECK));
+
+		// when & then
+		mockMvc.perform(patch("/api/members/info")
+				.header(AUTHORIZATION, String.format(BEARER_PREFIX, ACCESS_TOKEN))
+				.contentType(MediaType.APPLICATION_JSON)
+				.content(objectMapper.writeValueAsString(request)))
+			.andExpect(status().isBadRequest())
+			.andExpect(jsonPath("$.code").value(MISMATCH_PASSWORD_CHECK.getCode()))
+			.andExpect(jsonPath("$.status").value(MISMATCH_PASSWORD_CHECK.getStatus()))
+			.andExpect(jsonPath("$.message").value(MISMATCH_PASSWORD_CHECK.getMessage()))
+			.andDo(
+				restDocs.document(
+					requestFields(
+						fieldWithPath("password").description("회원의 기존 비밀번호"),
+						fieldWithPath("newPassword").description("변경할 새로운 비밀번호"),
+						fieldWithPath("newPasswordCheck").description("변경할 새로운 비밀번호 확인")
+					),
+					responseFields(
+						fieldWithPath("status").description("HTTP 상태 코드"),
+						fieldWithPath("message").description("에러 메세지"),
+						fieldWithPath("code").description("에러 코드"),
+						fieldWithPath("fieldErrors").description("유효성 검증 실패에 대한 정보")
+					)
+				)
+			);
+	}
+
+	@DisplayName("회원 비밀번호 변경에 성공한다.")
+	@Test
+	void updatePassword() throws Exception {
+		// given
+		UpdatePasswordRequest request = UpdatePasswordRequest.builder()
+			.password("zxc123")
+			.newPassword("asd123")
+			.newPasswordCheck("asd123")
+			.build();
+
+		Map<String, String> response = new HashMap<>();
+		response.put("message", "비밀번호가 성공적으로 변경되었습니다.");
+
+		given(memberService.updatePassword(any(), any())).willReturn(response);
+
+		// when & then
+		mockMvc.perform(patch("/api/members/info")
+				.header(AUTHORIZATION, String.format(BEARER_PREFIX, ACCESS_TOKEN))
+				.contentType(MediaType.APPLICATION_JSON)
+				.content(objectMapper.writeValueAsString(request)))
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("$.message").value(response.get("message")))
+			.andDo(
+				restDocs.document(
+					requestFields(
+						fieldWithPath("password").description("회원의 기존 비밀번호"),
+						fieldWithPath("newPassword").description("변경할 새로운 비밀번호"),
+						fieldWithPath("newPasswordCheck").description("변경할 새로운 비밀번호 확인")
 					),
 					responseFields(
 						fieldWithPath("message").description("응답 메세지")
