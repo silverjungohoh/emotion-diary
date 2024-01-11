@@ -19,6 +19,7 @@ import com.project.emotiondiary.domain.member.model.LoginResponse;
 import com.project.emotiondiary.domain.member.model.ReissueResponse;
 import com.project.emotiondiary.domain.member.model.SignUpRequest;
 import com.project.emotiondiary.domain.member.model.SignUpResponse;
+import com.project.emotiondiary.domain.member.model.UpdatePasswordRequest;
 import com.project.emotiondiary.domain.member.model.WithDrawRequest;
 import com.project.emotiondiary.domain.member.repository.MemberRepository;
 import com.project.emotiondiary.global.auth.model.InvalidatedAccessToken;
@@ -169,9 +170,28 @@ public class MemberService {
 		return getMessage("회원 탈퇴가 성공적으로 처리되었습니다.");
 	}
 
+	@Transactional
+	public Map<String, String> updatePassword(Member member, UpdatePasswordRequest request) {
+
+		if(!passwordEncoder.matches(request.getPassword(), member.getPassword())) {
+			throw new MemberException(UPDATE_PASSWORD_FAILED);
+		}
+
+		if(!Objects.equals(request.getNewPassword(), request.getNewPasswordCheck())) {
+			throw new MemberException(MISMATCH_PASSWORD_CHECK);
+		}
+		// 비밀번호 변경
+		member.updatePassword(passwordEncoder.encode(request.getNewPassword()));
+		memberRepository.save(member);
+
+		return getMessage("비밀번호가 성공적으로 변경되었습니다.");
+	}
+
+
 	private static Map<String, String> getMessage(String message) {
 		Map<String, String> result = new HashMap<>();
 		result.put("message", message);
+
 		return result;
 	}
 }
