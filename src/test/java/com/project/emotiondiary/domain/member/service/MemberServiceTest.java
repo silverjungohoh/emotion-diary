@@ -20,6 +20,7 @@ import com.project.emotiondiary.domain.member.model.LoginResponse;
 import com.project.emotiondiary.domain.member.model.ReissueResponse;
 import com.project.emotiondiary.domain.member.model.SignUpRequest;
 import com.project.emotiondiary.domain.member.model.SignUpResponse;
+import com.project.emotiondiary.domain.member.model.UpdatePasswordRequest;
 import com.project.emotiondiary.domain.member.model.WithDrawRequest;
 import com.project.emotiondiary.domain.member.repository.MemberRepository;
 import com.project.emotiondiary.global.auth.model.InvalidatedAccessToken;
@@ -110,7 +111,7 @@ class MemberServiceTest extends IntegrationTestSupport {
 		assertThat(response.get("message")).isEqualTo("사용 가능한 닉네임입니다.");
 	}
 
-	@DisplayName("회원 가입 시 입력 받은 두 비밀번호가 일치하지 않으면 예외를 던진다.")
+	@DisplayName("비밀번호와 비밀번호 확인이 일치하지 않으면 예외를 던진다.")
 	@Test
 	void signUpWithMismatchPasswordCheck() {
 		// given
@@ -283,7 +284,7 @@ class MemberServiceTest extends IntegrationTestSupport {
 		assertThat(roleInToken).isEqualTo(Role.ROLE_USER.name());
 	}
 
-	@DisplayName("회원 로그아웃을 진행한다.")
+	@DisplayName("회원 로그아웃에 성공한다.")
 	@Test
 	void logout() {
 		// given
@@ -319,7 +320,7 @@ class MemberServiceTest extends IntegrationTestSupport {
 			.isEqualTo("로그아웃 성공");
 	}
 
-	@DisplayName("입력 받은 비밀번호가 올바르지 않는 경우 예외를 던진다.")
+	@DisplayName("입력 받은 비밀번호가 틀리면 경우 예외를 던진다.")
 	@Test
 	void withdrawWithWrongPassword() {
 		// given
@@ -334,7 +335,7 @@ class MemberServiceTest extends IntegrationTestSupport {
 			.hasMessage(WITHDRAW_FAILED.getMessage());
 	}
 
-	@DisplayName("회원 탈퇴를 진행한다.")
+	@DisplayName("회원 탈퇴에 성공한다.")
 	@Test
 	void withdraw() {
 		// given
@@ -351,6 +352,65 @@ class MemberServiceTest extends IntegrationTestSupport {
 			.extracting("message")
 			.isEqualTo("회원 탈퇴가 성공적으로 처리되었습니다.");
 
+	}
+
+	@DisplayName("회원의 기존 비밀번호가 틀리면 예외를 던진다.")
+	@Test
+	void updatePasswordWithWrongPassword() {
+		// given
+		Member member = createMemberWithEncodedPassword();
+		memberRepository.save(member);
+
+		UpdatePasswordRequest request = UpdatePasswordRequest.builder()
+			.password("qwe123")
+			.newPassword("asd123")
+			.newPasswordCheck("asd123")
+			.build();
+
+		// when & then
+		assertThatThrownBy(() -> memberService.updatePassword(member, request))
+			.isInstanceOf(MemberException.class)
+			.hasMessage(UPDATE_PASSWORD_FAILED.getMessage());
+	}
+	@DisplayName("새로운 비밀번호와 비밀번호 확인이 일치하지 않으면 예외를 던진다.")
+	@Test
+	void updatePasswordWithMismatchPasswordCheck() {
+		// given
+		Member member = createMemberWithEncodedPassword();
+		memberRepository.save(member);
+
+		UpdatePasswordRequest request = UpdatePasswordRequest.builder()
+			.password("zxc123")
+			.newPassword("asd123")
+			.newPasswordCheck("qwe123")
+			.build();
+
+		// when & then
+		assertThatThrownBy(() -> memberService.updatePassword(member, request))
+			.isInstanceOf(MemberException.class)
+			.hasMessage(MISMATCH_PASSWORD_CHECK.getMessage());
+	}
+
+	@DisplayName("회원 비밀번호 변경에 성공한다.")
+	@Test
+	void updatePassword() {
+		// given
+		Member member = createMemberWithEncodedPassword();
+		memberRepository.save(member);
+
+		UpdatePasswordRequest request = UpdatePasswordRequest.builder()
+			.password("zxc123")
+			.newPassword("asd123")
+			.newPasswordCheck("asd123")
+			.build();
+
+		// when
+		Map<String, String> response = memberService.updatePassword(member, request);
+
+		// then
+		assertThat(response)
+			.extracting("message")
+			.isEqualTo("비밀번호가 성공적으로 변경되었습니다.");
 	}
 
 	private static Member createMember() {
