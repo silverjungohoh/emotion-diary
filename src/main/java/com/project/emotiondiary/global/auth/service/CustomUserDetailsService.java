@@ -2,6 +2,7 @@ package com.project.emotiondiary.global.auth.service;
 
 import static com.project.emotiondiary.global.error.type.AuthErrorCode.*;
 
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -23,8 +24,8 @@ public class CustomUserDetailsService implements UserDetailsService {
 	private final MemberRepository memberRepository;
 
 	@Override
+	@Cacheable(key = "#p0", value = "user", unless = "#result == null")  // "user::test@test.com" 형태로 캐싱됨
 	public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-
 		Member member = memberRepository.findByEmail(username)
 			.orElseThrow(() -> new AuthException(AUTHENTICATION_FAILED));
 

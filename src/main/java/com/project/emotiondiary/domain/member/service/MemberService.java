@@ -7,6 +7,7 @@ import java.util.Map;
 import java.util.Objects;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -134,6 +135,7 @@ public class MemberService {
 	}
 
 	@Transactional
+	@CacheEvict(value = "user", key = "#p0.email") // 캐싱된 회원 정보를 삭제
 	public Map<String, String> logout(Member member, String bearerToken) {
 		String accessToken = bearerToken.substring(BEARER_PREFIX.length());
 		// access token 무효화 위해
@@ -152,6 +154,7 @@ public class MemberService {
 	}
 
 	@Transactional
+	@CacheEvict(value = "user", key = "#p0.email")
 	public Map<String, String> withdraw(Member member, WithDrawRequest request) {
 
 		// 비밀번호 확인
