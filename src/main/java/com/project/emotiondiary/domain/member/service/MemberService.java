@@ -17,6 +17,7 @@ import com.project.emotiondiary.domain.member.entity.Member;
 import com.project.emotiondiary.domain.member.entity.Role;
 import com.project.emotiondiary.domain.member.model.LoginRequest;
 import com.project.emotiondiary.domain.member.model.LoginResponse;
+import com.project.emotiondiary.domain.member.model.ProfileResponse;
 import com.project.emotiondiary.domain.member.model.ReissueResponse;
 import com.project.emotiondiary.domain.member.model.SignUpRequest;
 import com.project.emotiondiary.domain.member.model.SignUpResponse;
@@ -188,6 +189,11 @@ public class MemberService {
 		memberRepository.save(member);
 
 		return getMessage("비밀번호가 성공적으로 변경되었습니다.");
+	}
+
+	@Transactional(readOnly = true)
+	public ProfileResponse getMemberProfile (Member member) {
+		return ProfileResponse.from(member);
 	}
 
 

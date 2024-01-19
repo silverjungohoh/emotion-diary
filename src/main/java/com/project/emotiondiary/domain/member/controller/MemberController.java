@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.project.emotiondiary.domain.member.entity.Member;
 import com.project.emotiondiary.domain.member.model.LoginRequest;
 import com.project.emotiondiary.domain.member.model.LoginResponse;
+import com.project.emotiondiary.domain.member.model.ProfileResponse;
 import com.project.emotiondiary.domain.member.model.ReissueResponse;
 import com.project.emotiondiary.domain.member.model.SignUpRequest;
 import com.project.emotiondiary.domain.member.model.SignUpResponse;
@@ -95,6 +96,14 @@ public class MemberController {
 		@Valid @RequestBody UpdatePasswordRequest request) {
 
 		Map<String, String> response = memberService.updatePassword(member, request);
+		return ResponseEntity.ok(response);
+	}
+
+	@AuthRequired
+	@GetMapping("/info")
+	public ResponseEntity<ProfileResponse> getMemberProfile (@AuthUser Member member){
+
+		ProfileResponse response = memberService.getMemberProfile(member);
 		return ResponseEntity.ok(response);
 	}
 }
