@@ -9,6 +9,7 @@ import static org.springframework.restdocs.payload.PayloadDocumentation.*;
 import static org.springframework.restdocs.request.RequestDocumentation.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
+import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -19,6 +20,7 @@ import org.springframework.http.MediaType;
 import com.project.emotiondiary.domain.member.entity.Gender;
 import com.project.emotiondiary.domain.member.model.LoginRequest;
 import com.project.emotiondiary.domain.member.model.LoginResponse;
+import com.project.emotiondiary.domain.member.model.ProfileResponse;
 import com.project.emotiondiary.domain.member.model.ReissueResponse;
 import com.project.emotiondiary.domain.member.model.SignUpRequest;
 import com.project.emotiondiary.domain.member.model.SignUpResponse;
@@ -651,6 +653,43 @@ class MemberControllerTest extends ControllerTestSupport {
 					),
 					responseFields(
 						fieldWithPath("message").description("응답 메세지")
+					)
+				)
+			);
+	}
+
+	@DisplayName("회원 프로필 정보를 조회한다.")
+	@Test
+	void getMemberProfile() throws Exception {
+		// given
+		ProfileResponse response = ProfileResponse.builder()
+			.id(1L)
+			.email("test@test.com")
+			.nickname("hello123")
+			.gender(Gender.FEMALE)
+			.createdAt(LocalDate.now())
+			.build();
+
+		given(memberService.getMemberProfile(any())).willReturn(response);
+
+		// when & then
+		mockMvc.perform(get("/api/members/info")
+				.header(AUTHORIZATION, String.format(BEARER_PREFIX, ACCESS_TOKEN))
+				.contentType(MediaType.APPLICATION_JSON))
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("$.id").value(response.getId()))
+			.andExpect(jsonPath("$.email").value(response.getEmail()))
+			.andExpect(jsonPath("$.nickname").value(response.getNickname()))
+			.andExpect(jsonPath("$.gender").value(response.getGender().name()))
+			.andExpect(jsonPath("$.createdAt").value(response.getCreatedAt().toString()))
+			.andDo(
+				restDocs.document(
+					responseFields(
+						fieldWithPath("id").description("회원 고유 번호"),
+						fieldWithPath("email").description("회원 이메일"),
+						fieldWithPath("nickname").description("회원 닉네임"),
+						fieldWithPath("gender").description("회원 성별 (MALE/FEMALE)"),
+						fieldWithPath("createdAt").description("회원 가입한 날짜")
 					)
 				)
 			);

@@ -1,9 +1,11 @@
 package com.project.emotiondiary.domain.member.service;
 
+import static com.project.emotiondiary.domain.member.entity.Gender.*;
 import static com.project.emotiondiary.global.error.type.MemberErrorCode.*;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThatThrownBy;
 
+import java.time.LocalDate;
 import java.util.Map;
 import java.util.Optional;
 
@@ -17,6 +19,7 @@ import com.project.emotiondiary.domain.member.entity.Member;
 import com.project.emotiondiary.domain.member.entity.Role;
 import com.project.emotiondiary.domain.member.model.LoginRequest;
 import com.project.emotiondiary.domain.member.model.LoginResponse;
+import com.project.emotiondiary.domain.member.model.ProfileResponse;
 import com.project.emotiondiary.domain.member.model.ReissueResponse;
 import com.project.emotiondiary.domain.member.model.SignUpRequest;
 import com.project.emotiondiary.domain.member.model.SignUpResponse;
@@ -372,6 +375,7 @@ class MemberServiceTest extends IntegrationTestSupport {
 			.isInstanceOf(MemberException.class)
 			.hasMessage(UPDATE_PASSWORD_FAILED.getMessage());
 	}
+
 	@DisplayName("새로운 비밀번호와 비밀번호 확인이 일치하지 않으면 예외를 던진다.")
 	@Test
 	void updatePasswordWithMismatchPasswordCheck() {
@@ -413,9 +417,27 @@ class MemberServiceTest extends IntegrationTestSupport {
 			.isEqualTo("비밀번호가 성공적으로 변경되었습니다.");
 	}
 
+	@DisplayName("회원 프로필 정보를 조회한다.")
+	@Test
+	void getMemberProfile() {
+		// given
+		Member member = createMember();
+		memberRepository.save(member);
+
+		// when
+		ProfileResponse response = memberService.getMemberProfile(member);
+
+		// then
+		assertThat(response)
+			.extracting("id", "email", "nickname", "gender", "createdAt")
+			.contains(1L, "test@test.com", "hello1234", FEMALE, LocalDate.now());
+	}
+
 	private static Member createMember() {
 		return Member.builder()
 			.email("test@test.com")
+			.nickname("hello1234")
+			.gender(FEMALE)
 			.role(Role.ROLE_USER)
 			.build();
 	}
