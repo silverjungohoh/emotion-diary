@@ -286,3 +286,16 @@ include::{snippets}/member-controller-test/update-password/http-response.adoc[]
 
 * Response Fields
 include::{snippets}/member-controller-test/update-password/response-fields.adoc[]
+
+=== 회원 프로필 정보 조회
+
+==== 성공
+
+*HTTP Request*
+include::{snippets}/member-controller-test/get-member-profile/http-request.adoc[]
+
+*HTTP Response*
+include::{snippets}/member-controller-test/get-member-profile/http-response.adoc[]
+
+* Response Fields
+include::{snippets}/member-controller-test/get-member-profile/response-fields.adoc[]
